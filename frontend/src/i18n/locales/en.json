@@ -1,0 +1,83 @@
+{
+  "header": {
+    "logo": "SSDK",
+    "searchPlaceholder": "Search on portal",
+    "create": "Create",
+    "profile": "Profile",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "logout": "Log Out"
+  },
+  "profile": {
+    "title": "Profile"
+  },
+  "sidebar": {
+    "home": "Home",
+    "explore": "Explore",
+    "createCommunity": "Create a community"
+  },
+  "createCommunity": {
+    "title": "Create a community",
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter community name",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Tell us a bit about your community",
+    "topicLabel": "What will your community be about?",
+    "rulesAgreement": "I agree to the",
+    "rulesLink": "platform rules",
+    "cancel": "Cancel",
+    "submit": "Create",
+    "errors": {
+      "name": "Name must be between 2 and 32 Latin letters",
+      "description": "Description is required (up to 1024 characters)",
+      "rules": "You must agree to the platform rules",
+      "serverError": "Failed to create community. Please try again."
+    },
+    "topics": {
+      "animeCosplay": "Anime & Cosplay",
+      "art": "Art",
+      "businessFinance": "Business & Finance",
+      "collectiblesHobbies": "Collectibles & Other Hobbies",
+      "educationCareer": "Education & Career",
+      "fashionBeauty": "Fashion & Beauty",
+      "foodDrinks": "Food & Drinks",
+      "games": "Games",
+      "health": "Health",
+      "homeGarden": "Home & Garden",
+      "humanitiesLaw": "Humanities & Law",
+      "identityRelationships": "Identity & Relationships",
+      "internetCulture": "Internet Culture",
+      "moviesTv": "Movies & TV",
+      "music": "Music",
+      "natureOutdoors": "Nature & Outdoors",
+      "newsPolitics": "News & Politics",
+      "placesTravel": "Places & Travel",
+      "popCulture": "Pop Culture",
+      "qasStories": "Q&As & Stories",
+      "readingWriting": "Reading & Writing",
+      "sciences": "Sciences",
+      "spooky": "Spooky",
+      "sports": "Sports",
+      "technology": "Technology",
+      "vehicles": "Vehicles",
+      "wellness": "Wellness",
+      "adultContent": "Adult Content",
+      "matureTopics": "Mature Topics"
+    }
+  },
+  "feed": {
+    "home": "Home",
+    "sortBy": "Sort by",
+    "sort": {
+      "best": "Best",
+      "top": "Top",
+      "new": "New"
+    }
+  },
+  "createPost": {
+    "title": "Create Post Page"
+  },
+  "notFound": {
+    "title": "404 Page not found"
+  }
+}

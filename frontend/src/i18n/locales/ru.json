@@ -1,0 +1,83 @@
+{
+  "header": {
+    "logo": "Соседики",
+    "searchPlaceholder": "Поиск на портале",
+    "create": "Создать",
+    "profile": "Профиль",
+    "settings": "Настройки",
+    "notifications": "Уведомления",
+    "logout": "Выйти"
+  },
+  "profile": {
+    "title": "Профиль"
+  },
+  "sidebar": {
+    "home": "Главная",
+    "explore": "Обзор",
+    "createCommunity": "Создать сообщество"
+  },
+  "createCommunity": {
+    "title": "Создать сообщество",
+    "nameLabel": "Название",
+    "namePlaceholder": "Введите название сообщества",
+    "descriptionLabel": "Описание",
+    "descriptionPlaceholder": "Расскажите немного о вашем сообществе",
+    "topicLabel": "О чём будет ваше сообщество?",
+    "rulesAgreement": "Я согласен с",
+    "rulesLink": "правилами площадки",
+    "cancel": "Отмена",
+    "submit": "Создать",
+    "errors": {
+      "name": "Название должно содержать от 2 до 32 латинских букв",
+      "description": "Описание обязательно (до 1024 символов)",
+      "rules": "Необходимо согласиться с правилами площадки",
+      "serverError": "Не удалось создать сообщество. Попробуйте ещё раз."
+    },
+    "topics": {
+      "animeCosplay": "Аниме и косплей",
+      "art": "Искусство",
+      "businessFinance": "Бизнес и финансы",
+      "collectiblesHobbies": "Коллекционирование и хобби",
+      "educationCareer": "Образование и карьера",
+      "fashionBeauty": "Мода и красота",
+      "foodDrinks": "Еда и напитки",
+      "games": "Игры",
+      "health": "Здоровье",
+      "homeGarden": "Дом и сад",
+      "humanitiesLaw": "Гуманитарные науки и право",
+      "identityRelationships": "Отношения и личность",
+      "internetCulture": "Интернет-культура",
+      "moviesTv": "Фильмы и ТВ",
+      "music": "Музыка",
+      "natureOutdoors": "Природа и активный отдых",
+      "newsPolitics": "Новости и политика",
+      "placesTravel": "Места и путешествия",
+      "popCulture": "Поп-культура",
+      "qasStories": "Вопросы, ответы и истории",
+      "readingWriting": "Чтение и литература",
+      "sciences": "Наука",
+      "spooky": "Мистика и страшилки",
+      "sports": "Спорт",
+      "technology": "Технологии",
+      "vehicles": "Транспорт и авто",
+      "wellness": "Велнес и самочувствие",
+      "adultContent": "Контент 18+",
+      "matureTopics": "Взрослые темы"
+    }
+  },
+  "feed": {
+    "home": "Главная",
+    "sortBy": "Сортировать по",
+    "sort": {
+      "best": "Лучшее",
+      "top": "Топ",
+      "new": "Новое"
+    }
+  },
+  "createPost": {
+    "title": "Создать пост"
+  },
+  "notFound": {
+    "title": "404 Страница не найдена"
+  }
+}

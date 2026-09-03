@@ -1,0 +1,31 @@
+import { Router } from "express";
+import { AuthController } from "./auth.controller.js";
+import {
+  registerSchema,
+  loginSchema,
+  refreshTokenSchema,
+} from "./auth.schemas.js";
+import { validateRequest } from "../../common/middlewares/validateRequest.js";
+import { requireAuth } from "../../common/middlewares/requireAuth.js";
+
+const router = Router();
+
+router.post(
+  "/register",
+  validateRequest({ body: registerSchema }),
+  AuthController.register,
+);
+router.post(
+  "/login",
+  validateRequest({ body: loginSchema }),
+  AuthController.login,
+);
+router.post(
+  "/refresh",
+  validateRequest({ body: refreshTokenSchema }),
+  AuthController.refresh,
+);
+router.post("/logout", AuthController.logout);
+router.get("/me", requireAuth, AuthController.me);
+
+export { router as authRoutes };
