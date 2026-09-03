@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
-import { Header } from "./widgets/Header";
-import { Sidebar } from "./widgets/Sidebar";
+import { Header } from "@/components/layout/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
 
 function AppLayout() {
   return (
