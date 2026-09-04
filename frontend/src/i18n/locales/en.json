@@ -6,7 +6,27 @@
     "profile": "Profile",
     "settings": "Settings",
     "notifications": "Notifications",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "login": "Log In"
+  },
+  "auth": {
+    "loginTitle": "Sign In",
+    "registerTitle": "Create Account",
+    "loginTab": "Log In",
+    "registerTab": "Sign Up",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Choose a username (min 3 characters)",
+    "loginLabel": "Username or Email",
+    "loginPlaceholder": "Enter your username or email",
+    "emailLabel": "Email",
+    "emailPlaceholder": "example@domain.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Minimum 6 characters",
+    "submitLogin": "Log In",
+    "submitRegister": "Sign Up",
+    "defaultError": "Authentication failed. Please try again.",
+    "switchToRegister": "Don't have an account? Sign Up",
+    "switchToLogin": "Already have an account? Log In"
   },
   "profile": {
     "title": "Profile"
@@ -14,7 +34,8 @@
   "sidebar": {
     "home": "Home",
     "explore": "Explore",
-    "createCommunity": "Create a community"
+    "createCommunity": "Create a community",
+    "myCommunities": "My Communities"
   },
   "createCommunity": {
     "title": "Create a community",
@@ -28,10 +49,11 @@
     "cancel": "Cancel",
     "submit": "Create",
     "errors": {
-      "name": "Name must be between 2 and 32 Latin letters",
-      "description": "Description is required (up to 1024 characters)",
-      "rules": "You must agree to the platform rules",
-      "serverError": "Failed to create community. Please try again."
+      "name": "Name must be 2 to 32 latin letters",
+      "description": "Description is required (max 1024 characters)",
+      "rules": "You must agree to the community rules",
+      "serverError": "Failed to create community. Please try again.",
+      "loginRequired": "You must be signed in to create a community."
     },
     "topics": {
       "animeCosplay": "Anime & Cosplay",

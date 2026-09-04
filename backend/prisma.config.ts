@@ -6,6 +6,6 @@ export default defineConfig({
   datasource: {
     url:
       process.env.DATABASE_URL ||
-      "postgresql://postgres:postgres@localhost:5432/crates?schema=public",
+      "postgresql://postgres:postgres@localhost:5432/staff?schema=public",
   },
 });

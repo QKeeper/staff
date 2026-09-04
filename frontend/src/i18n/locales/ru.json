@@ -6,7 +6,27 @@
     "profile": "Профиль",
     "settings": "Настройки",
     "notifications": "Уведомления",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "login": "Войти"
+  },
+  "auth": {
+    "loginTitle": "Вход в аккаунт",
+    "registerTitle": "Регистрация",
+    "loginTab": "Вход",
+    "registerTab": "Регистрация",
+    "usernameLabel": "Имя пользователя",
+    "usernamePlaceholder": "Придумайте имя (от 3 латинских символов)",
+    "loginLabel": "Имя пользователя или Email",
+    "loginPlaceholder": "Введите логин или email",
+    "emailLabel": "Email",
+    "emailPlaceholder": "example@domain.com",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Минимум 6 символов",
+    "submitLogin": "Войти",
+    "submitRegister": "Создать аккаунт",
+    "defaultError": "Ошибка при аутентификации. Попробуйте ещё раз.",
+    "switchToRegister": "Нет аккаунта? Зарегистрироваться",
+    "switchToLogin": "Уже есть аккаунт? Войти"
   },
   "profile": {
     "title": "Профиль"
@@ -14,7 +34,8 @@
   "sidebar": {
     "home": "Главная",
     "explore": "Обзор",
-    "createCommunity": "Создать сообщество"
+    "createCommunity": "Создать сообщество",
+    "myCommunities": "Мои сообщества"
   },
   "createCommunity": {
     "title": "Создать сообщество",
@@ -31,7 +52,8 @@
       "name": "Название должно содержать от 2 до 32 латинских букв",
       "description": "Описание обязательно (до 1024 символов)",
       "rules": "Необходимо согласиться с правилами площадки",
-      "serverError": "Не удалось создать сообщество. Попробуйте ещё раз."
+      "serverError": "Не удалось создать сообщество. Попробуйте ещё раз.",
+      "loginRequired": "Для создания сообщества необходимо войти в аккаунт."
     },
     "topics": {
       "animeCosplay": "Аниме и косплей",

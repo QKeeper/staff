@@ -6,7 +6,7 @@ const app = createApp();
 
 const server = app.listen(env.PORT, () => {
   console.log(
-    `🚀 Crates Backend Server running on http://localhost:${env.PORT}`,
+    `🚀 Staff Backend Server running on http://localhost:${env.PORT}`,
   );
   console.log(`📡 Environment: ${env.NODE_ENV}`);
 });

@@ -1,5 +1,5 @@
 {
-  "name": "crates-monorepo",
+  "name": "staff-monorepo",
   "private": true,
   "scripts": {
     "dev": "pnpm --parallel --filter \"./frontend\" --filter \"./backend\" dev",

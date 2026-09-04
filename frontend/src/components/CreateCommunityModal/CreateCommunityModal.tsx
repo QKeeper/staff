@@ -12,6 +12,8 @@ import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { z } from "zod";
+import { api, ApiError } from "@/api/client";
+import { useAuth } from "@/context/AuthContext";
 
 const TOPIC_KEYS = [
   "animeCosplay",
@@ -58,19 +60,9 @@ const createCommunitySchema = z.object({
 
 type CreateCommunityFormValues = z.infer<typeof createCommunitySchema>;
 
-const createCommunityMockApi = async (data: CreateCommunityFormValues) => {
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-
-  // 40% chance of failing to simulate network/server error
-  if (Math.random() < 0.4) {
-    throw new Error("Mock server error");
-  }
-
-  return { id: `comm_${Date.now()}`, ...data };
-};
-
 const CreateCommunityModal = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -132,10 +124,15 @@ const CreateCommunityModal = () => {
   };
 
   const onSubmit = async (data: CreateCommunityFormValues) => {
+    if (!user) {
+      setServerError(t("createCommunity.errors.loginRequired"));
+      return;
+    }
+
     setIsLoading(true);
     setServerError(null);
     try {
-      await createCommunityMockApi(data);
+      const community = await api.communities.create(data);
       setIsOpen(false);
       reset({
         name: "",
@@ -143,8 +140,15 @@ const CreateCommunityModal = () => {
         topic: "technology",
         rulesAgreement: false as unknown as true,
       });
-    } catch {
-      setServerError(t("createCommunity.errors.serverError"));
+      window.dispatchEvent(
+        new CustomEvent("community-created", { detail: community }),
+      );
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setServerError(err.message);
+      } else {
+        setServerError(t("createCommunity.errors.serverError"));
+      }
     } finally {
       setIsLoading(false);
     }
