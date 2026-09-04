@@ -1,4 +1,7 @@
 {
+  "common": {
+    "loading": "Загрузка..."
+  },
   "header": {
     "logo": "Соседики",
     "searchPlaceholder": "Поиск на портале",
