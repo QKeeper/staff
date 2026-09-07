@@ -100,13 +100,41 @@
     }
   },
   "createPost": {
-    "title": "Создать пост"
+    "title": "Создать пост",
+    "destinationLabel": "Место публикации",
+    "destinationPlaceholder": "Выберите сообщество или профиль",
+    "searchPlaceholder": "Поиск сообществ...",
+    "profileGroup": "Мой профиль",
+    "myCommunitiesGroup": "Ваши сообщества",
+    "allCommunitiesGroup": "Все сообщества",
+    "noCommunitiesFound": "Сообщества не найдены",
+    "titleLabel": "Заголовок",
+    "titlePlaceholder": "Заголовок поста",
+    "contentLabel": "Описание",
+    "contentPlaceholder": "Текст поста (необязательно)",
+    "submitButton": "Запостить",
+    "cancelButton": "Отмена",
+    "submitting": "Публикация...",
+    "successNotification": "Пост успешно создан!",
+    "loginRequired": "Необходимо войти в систему для создания поста",
+    "preview": {
+      "title": "Предпросмотр",
+      "emptyTitle": "Место не выбрано",
+      "emptyDescription": "Выберите сообщество или личный профиль для предпросмотра информации.",
+      "aboutCommunity": "О сообществе",
+      "aboutProfile": "О профиле",
+      "noDescription": "Описание отсутствует",
+      "membersCount": "участников"
+    }
   },
   "notFound": {
     "title": "404 Страница не найдена"
   },
   "community": {
-    "title": "Сообщество"
+    "title": "Сообщество",
+    "createPost": "Создать пост",
+    "notFound": "Сообщество не найдено",
+    "members": "участников"
   },
   "explore": {
     "title": "Обзор"

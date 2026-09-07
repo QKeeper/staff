@@ -123,10 +123,12 @@ export class CommunityService {
     }
 
     if (search) {
+      const cleanSearch = search.trim().replace(/^(\/r\/|r\/|@)/i, "");
+      const searchTerm = cleanSearch || search.trim();
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { displayName: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
+        { name: { contains: searchTerm, mode: "insensitive" } },
+        { displayName: { contains: searchTerm, mode: "insensitive" } },
+        { description: { contains: searchTerm, mode: "insensitive" } },
       ];
     }
 
@@ -186,6 +188,7 @@ export class CommunityService {
       id: m.community.id,
       name: m.community.name,
       displayName: m.community.displayName,
+      description: m.community.description,
       topic: m.community.topic,
       role: m.role,
       permissions: m.permissions,

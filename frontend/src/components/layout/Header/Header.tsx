@@ -31,7 +31,7 @@ const Header = () => {
 
   const CreatePost = () => (
     <Link
-      to="submit"
+      to="/submit"
       className="flex h-8 shrink-0 items-center justify-center gap-1 rounded-sm px-2.5 text-sm hover:bg-gray-900"
     >
       <PlusIcon className="size-4" />

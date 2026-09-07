@@ -6,6 +6,8 @@ import { CommunityPage } from "@/pages/CommunityPage";
 import { ExplorePage } from "@/pages/ExplorePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 
+import { CreatePostPage } from "@/pages/CreatePostPage";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -26,6 +28,10 @@ const router = createBrowserRouter([
       {
         path: "settings",
         element: <SettingsPage />,
+      },
+      {
+        path: "submit",
+        element: <CreatePostPage />,
       },
       {
         path: "r/:communityName",

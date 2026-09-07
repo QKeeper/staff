@@ -100,13 +100,41 @@
     }
   },
   "createPost": {
-    "title": "Create Post Page"
+    "title": "Create a post",
+    "destinationLabel": "Destination",
+    "destinationPlaceholder": "Select community or profile",
+    "searchPlaceholder": "Search communities...",
+    "profileGroup": "My profile",
+    "myCommunitiesGroup": "Your communities",
+    "allCommunitiesGroup": "All communities",
+    "noCommunitiesFound": "No communities found",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Post title",
+    "contentLabel": "Description",
+    "contentPlaceholder": "Post text (optional)",
+    "submitButton": "Post",
+    "cancelButton": "Cancel",
+    "submitting": "Posting...",
+    "successNotification": "Post successfully published!",
+    "loginRequired": "You need to log in to create a post",
+    "preview": {
+      "title": "Preview",
+      "emptyTitle": "No destination selected",
+      "emptyDescription": "Select a community or personal profile to preview information.",
+      "aboutCommunity": "About community",
+      "aboutProfile": "About profile",
+      "noDescription": "No description provided",
+      "membersCount": "members"
+    }
   },
   "notFound": {
     "title": "404 Page not found"
   },
   "community": {
-    "title": "Community"
+    "title": "Community",
+    "createPost": "Create post",
+    "notFound": "Community not found",
+    "members": "members"
   },
   "explore": {
     "title": "Explore"

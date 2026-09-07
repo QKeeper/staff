@@ -41,6 +41,30 @@ export class ApiError extends Error {
   }
 }
 
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshToken(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch("/api/v1/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await res.json();
+      return Boolean(res.ok && data?.success);
+    } catch {
+      return false;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
 async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -52,11 +76,23 @@ async function apiFetch<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     ...options,
     headers,
     credentials: "include", // send/receive httpOnly cookies
   });
+
+  // Automatically refresh access token on 401 if it wasn't an auth endpoint
+  if (response.status === 401 && !endpoint.includes("/auth/")) {
+    const refreshed = await tryRefreshToken();
+    if (refreshed) {
+      response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: "include",
+      });
+    }
+  }
 
   let json: ApiResponse<T>;
   try {
@@ -112,6 +148,7 @@ export interface MyCommunity {
   id: string;
   name: string;
   displayName?: string | null;
+  description: string;
   topic: string;
   role: "OWNER" | "ADMIN" | "MODERATOR" | "MEMBER";
   permissions: string[];
