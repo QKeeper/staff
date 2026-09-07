@@ -7,22 +7,36 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { ModalContext } from "./ModalContext";
+import { ModalContext, type ModalPosition } from "./ModalContext";
 
 type Props = {
   children?: ReactNode;
   className?: string;
   width?: string | number;
+  position?: ModalPosition;
+  placement?: ModalPosition;
+  topOffset?: string | number;
   style?: CSSProperties;
 };
 
-const ModalContent = ({ children, className, width, style }: Props) => {
+const ModalContent = ({
+  children,
+  className,
+  width,
+  position,
+  placement,
+  topOffset,
+  style,
+}: Props) => {
   const context = useContext(ModalContext);
 
   const isOpen = context?.isOpen;
   const closeModal = context?.closeModal;
   const IgnoreOutsideClick = context?.IgnoreOutsideClick;
   const resolvedWidth = width ?? context?.width;
+  const resolvedPosition =
+    position ?? placement ?? context?.position ?? "center";
+  const resolvedTopOffset = topOffset ?? context?.topOffset;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -57,6 +71,16 @@ const ModalContent = ({ children, className, width, style }: Props) => {
     ...style,
   };
 
+  const backdropStyle: CSSProperties | undefined =
+    resolvedPosition === "top" && resolvedTopOffset !== undefined
+      ? {
+          paddingTop:
+            typeof resolvedTopOffset === "number"
+              ? `${resolvedTopOffset}px`
+              : resolvedTopOffset,
+        }
+      : undefined;
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -66,7 +90,11 @@ const ModalContent = ({ children, className, width, style }: Props) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.1 }}
           onPointerDown={handleBackdropPointerDown}
-          className="fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-gray-950/50"
+          style={backdropStyle}
+          className={cn(
+            "fixed inset-0 z-50 flex h-screen w-screen justify-center overflow-y-auto bg-gray-950/50 p-4",
+            resolvedPosition === "top" ? "items-start pt-20" : "items-center",
+          )}
         >
           <motion.div
             initial={{ opacity: 0, y: "-1vh" }}

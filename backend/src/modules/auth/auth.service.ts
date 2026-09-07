@@ -43,14 +43,20 @@ export class AuthService {
     input: RegisterInput,
     metadata?: { userAgent?: string; ipAddress?: string },
   ) {
+    const username = input.username.trim();
+    const email = input.email.trim();
+
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [{ email: input.email }, { username: input.username }],
+        OR: [
+          { email: { equals: email, mode: "insensitive" } },
+          { username: { equals: username, mode: "insensitive" } },
+        ],
       },
     });
 
     if (existingUser) {
-      if (existingUser.email.toLowerCase() === input.email.toLowerCase()) {
+      if (existingUser.email.toLowerCase() === email.toLowerCase()) {
         throw new ConflictError("User with this email already exists");
       }
       throw new ConflictError("Username is already taken");
@@ -61,8 +67,8 @@ export class AuthService {
 
     const user = await prisma.user.create({
       data: {
-        username: input.username,
-        email: input.email,
+        username,
+        email,
         passwordHash,
       },
       select: {
@@ -103,9 +109,13 @@ export class AuthService {
     input: LoginInput,
     metadata?: { userAgent?: string; ipAddress?: string },
   ) {
+    const loginValue = input.login.trim();
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ email: input.login }, { username: input.login }],
+        OR: [
+          { email: { equals: loginValue, mode: "insensitive" } },
+          { username: { equals: loginValue, mode: "insensitive" } },
+        ],
       },
     });
 

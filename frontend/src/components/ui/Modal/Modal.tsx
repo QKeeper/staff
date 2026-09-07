@@ -2,7 +2,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import { ModalBody } from "./ModalBody";
 import { ModalClose } from "./ModalClose";
 import { ModalContent } from "./ModalContent";
-import { ModalContext } from "./ModalContext";
+import { ModalContext, type ModalPosition } from "./ModalContext";
 import { ModalFooter } from "./ModalFooter";
 import { ModalHeader } from "./ModalHeader";
 import { ModalTrigger } from "./ModalTrigger";
@@ -13,6 +13,9 @@ type Props = {
   onOpenChange?: (open: boolean) => void;
   IgnoreOutsideClick?: boolean;
   width?: string | number;
+  position?: ModalPosition;
+  placement?: ModalPosition;
+  topOffset?: string | number;
   children: ReactNode;
   onOpen?: () => void;
   onClose?: () => void;
@@ -24,6 +27,9 @@ const ModalRoot = ({
   onOpenChange,
   IgnoreOutsideClick,
   width,
+  position,
+  placement,
+  topOffset,
   children,
   onOpen,
   onClose,
@@ -66,6 +72,8 @@ const ModalRoot = ({
     closeModal,
     toggleModal,
     width,
+    position: position ?? placement,
+    topOffset,
   };
 
   return (

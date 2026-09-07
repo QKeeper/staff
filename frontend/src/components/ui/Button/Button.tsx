@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 export type ButtonSize = "small" | "medium" | "large";
-export type ButtonVariant = "solid" | "ghost" | "outline";
+export type ButtonVariant = "solid" | "ghost" | "outline" | "accent";
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: ButtonSize;
@@ -30,6 +30,8 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost: "bg-transparent hover:bg-gray-900 active:bg-gray-800",
   outline:
     "border border-gray-700 bg-transparent hover:bg-gray-900 active:bg-gray-800",
+  accent:
+    "bg-gray-50 text-gray-950 font-medium hover:bg-gray-200 active:bg-gray-300",
 };
 
 const Button = ({
@@ -53,7 +55,7 @@ const Button = ({
       disabled={isDisabled}
       aria-busy={isButtonLoading}
       className={cn(
-        "relative inline-flex items-center justify-center rounded select-none disabled:pointer-events-none disabled:opacity-50",
+        "relative inline-flex items-center justify-center rounded transition-colors select-none disabled:pointer-events-none disabled:opacity-50",
         variantClasses[variant],
         sizeClasses[size],
         className,

@@ -6,7 +6,7 @@ type Props = {
 };
 
 const ModalFooter = ({ children }: Props) => {
-  return <div className="mt-2 flex justify-end">{children}</div>;
+  return <div className="mt-4 flex justify-end">{children}</div>;
 };
 
 export { ModalFooter };

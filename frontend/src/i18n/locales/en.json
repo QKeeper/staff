@@ -104,5 +104,14 @@
   },
   "notFound": {
     "title": "404 Page not found"
+  },
+  "community": {
+    "title": "Community"
+  },
+  "explore": {
+    "title": "Explore"
+  },
+  "settings": {
+    "title": "Profile Settings"
   }
 }

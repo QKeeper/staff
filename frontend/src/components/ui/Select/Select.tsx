@@ -30,7 +30,7 @@ type ValueRendererProps = {
 type ValueRenderer = (props: ValueRendererProps) => ReactNode;
 
 export type SelectSize = "small" | "medium" | "large";
-export type SelectVariant = "solid" | "ghost";
+export type SelectVariant = "solid" | "ghost" | "outline";
 export type DropdownVariant = "default" | "elevated";
 
 export interface SelectProps {
@@ -85,6 +85,8 @@ const labelSizeClasses: Record<SelectSize, string> = {
 const triggerVariantClasses: Record<SelectVariant, string> = {
   solid: "bg-gray-900 hover:bg-gray-800 active:bg-gray-700",
   ghost: "bg-transparent hover:bg-gray-900 active:bg-gray-800",
+  outline:
+    "border border-gray-700 bg-transparent hover:border-gray-600 hover:bg-gray-900 active:bg-gray-800 focus-visible:border-gray-400",
 };
 
 const dropdownVariantClasses: Record<DropdownVariant, string> = {
@@ -360,8 +362,9 @@ const Select = ({
         onKeyDown={handleTriggerKeyDown}
         style={formattedWidth ? { width: "100%" } : undefined}
         className={cn(
-          "flex items-center justify-between rounded-sm focus-visible:ring-1 focus-visible:ring-gray-700 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+          "flex items-center justify-between rounded-sm transition-colors select-none focus-visible:ring-1 focus-visible:ring-gray-700 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
           triggerVariantClasses[variant],
+          isOpen && variant === "outline" && "border-gray-400",
           sizeClasses[size],
           className,
         )}

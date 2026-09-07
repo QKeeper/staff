@@ -21,6 +21,9 @@ i18n
   .init({
     resources,
     defaultNS,
+    supportedLngs: ["ru", "en"],
+    nonExplicitSupportedLngs: true,
+    load: "languageOnly",
     fallbackLng: "ru",
     interpolation: {
       escapeValue: false,
@@ -28,6 +31,7 @@ i18n
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
+      convertDetectedLanguage: (lng: string) => lng.split("-")[0],
     },
   });
 

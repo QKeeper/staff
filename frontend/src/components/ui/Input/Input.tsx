@@ -26,7 +26,7 @@ const Input = ({
     <input
       type={type}
       className={cn(
-        "w-full rounded-sm bg-gray-900 placeholder:text-gray-400 focus:ring-1 focus:ring-gray-700 focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+        "w-full rounded-sm border border-gray-700 bg-gray-900 text-gray-50 transition-colors placeholder:text-gray-400 hover:border-gray-600 focus:border-gray-400 focus:outline-none disabled:pointer-events-none disabled:opacity-50",
         sizeClasses[size],
         className,
       )}

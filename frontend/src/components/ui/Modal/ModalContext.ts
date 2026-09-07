@@ -1,5 +1,7 @@
 import { createContext, useContext } from "react";
 
+export type ModalPosition = "center" | "top";
+
 export type ModalContextValue = {
   IgnoreOutsideClick?: boolean;
   isOpen: boolean;
@@ -7,6 +9,8 @@ export type ModalContextValue = {
   closeModal: () => void;
   toggleModal: () => void;
   width?: string | number;
+  position?: ModalPosition;
+  topOffset?: string | number;
 };
 
 export const ModalContext = createContext<ModalContextValue | null>(null);

@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/Label";
 import { Modal } from "@/components/ui/Modal";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError } from "@/api/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
@@ -32,7 +32,18 @@ export const AuthModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { register, handleSubmit, reset } = useForm<AuthFormValues>();
+  const { register, handleSubmit, reset, setFocus } = useForm<AuthFormValues>();
+
+  useEffect(() => {
+    if (open) {
+      const field = tab === "login" ? "login" : "username";
+      setFocus(field);
+      const timer = setTimeout(() => {
+        setFocus(field);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [open, tab, setFocus]);
 
   const handleOpenChange = (isOpen: boolean) => {
     onOpenChange(isOpen);
@@ -67,15 +78,35 @@ export const AuthModal = ({
       } else {
         setServerError(t("auth.defaultError"));
       }
+      const fieldId = tab === "login" ? "auth-login" : "auth-username";
+      const fieldName = tab === "login" ? "login" : "username";
+      setTimeout(() => {
+        setFocus(fieldName);
+        document.getElementById(fieldId)?.focus();
+      }, 50);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const onInvalid = () => {
+    const fieldId = tab === "login" ? "auth-login" : "auth-username";
+    const fieldName = tab === "login" ? "login" : "username";
+    setTimeout(() => {
+      setFocus(fieldName);
+      document.getElementById(fieldId)?.focus();
+    }, 50);
+  };
+
   return (
-    <Modal open={open} onOpenChange={handleOpenChange} width={420}>
+    <Modal
+      open={open}
+      onOpenChange={handleOpenChange}
+      width={420}
+      position="top"
+    >
       <Modal.Content>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)}>
           <Modal.Header>
             <div className="flex gap-4 border-b border-gray-800 pb-2">
               <button
@@ -119,8 +150,12 @@ export const AuthModal = ({
 
               {tab === "register" && (
                 <div>
-                  <Label>{t("auth.usernameLabel")}</Label>
+                  <Label htmlFor="auth-username">
+                    {t("auth.usernameLabel")}
+                  </Label>
                   <Input
+                    autoFocus
+                    id="auth-username"
                     required
                     minLength={3}
                     maxLength={30}
@@ -133,8 +168,9 @@ export const AuthModal = ({
 
               {tab === "register" ? (
                 <div>
-                  <Label>{t("auth.emailLabel")}</Label>
+                  <Label htmlFor="auth-email">{t("auth.emailLabel")}</Label>
                   <Input
+                    id="auth-email"
                     type="email"
                     required
                     disabled={isLoading}
@@ -144,8 +180,10 @@ export const AuthModal = ({
                 </div>
               ) : (
                 <div>
-                  <Label>{t("auth.loginLabel")}</Label>
+                  <Label htmlFor="auth-login">{t("auth.loginLabel")}</Label>
                   <Input
+                    autoFocus
+                    id="auth-login"
                     required
                     disabled={isLoading}
                     placeholder={t("auth.loginPlaceholder")}
@@ -155,8 +193,9 @@ export const AuthModal = ({
               )}
 
               <div>
-                <Label>{t("auth.passwordLabel")}</Label>
+                <Label htmlFor="auth-password">{t("auth.passwordLabel")}</Label>
                 <Input
+                  id="auth-password"
                   type="password"
                   required
                   minLength={6}
@@ -170,7 +209,12 @@ export const AuthModal = ({
 
           <Modal.Footer>
             <div className="flex w-full flex-col gap-2">
-              <Button type="submit" disabled={isLoading} className="w-full">
+              <Button
+                type="submit"
+                variant="accent"
+                disabled={isLoading}
+                className="w-full"
+              >
                 {isLoading
                   ? "..."
                   : tab === "login"

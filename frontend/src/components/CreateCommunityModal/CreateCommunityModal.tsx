@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { z } from "zod";
 import { api, ApiError } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
@@ -63,6 +63,7 @@ type CreateCommunityFormValues = z.infer<typeof createCommunitySchema>;
 const CreateCommunityModal = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -130,9 +131,9 @@ const CreateCommunityModal = () => {
     }
 
     setIsLoading(true);
-    setServerError(null);
     try {
       const community = await api.communities.create(data);
+      setServerError(null);
       setIsOpen(false);
       reset({
         name: "",
@@ -143,6 +144,7 @@ const CreateCommunityModal = () => {
       window.dispatchEvent(
         new CustomEvent("community-created", { detail: community }),
       );
+      navigate(`/r/${community.name}`);
     } catch (err) {
       if (err instanceof ApiError) {
         setServerError(err.message);
@@ -170,8 +172,11 @@ const CreateCommunityModal = () => {
                 </div>
               )}
               <div>
-                <Label>{t("createCommunity.nameLabel")}</Label>
+                <Label htmlFor="community-name">
+                  {t("createCommunity.nameLabel")}
+                </Label>
                 <Input
+                  id="community-name"
                   autoFocus
                   disabled={isLoading}
                   placeholder={t("createCommunity.namePlaceholder")}
@@ -179,8 +184,11 @@ const CreateCommunityModal = () => {
                 />
               </div>
               <div>
-                <Label>{t("createCommunity.descriptionLabel")}</Label>
+                <Label htmlFor="community-description">
+                  {t("createCommunity.descriptionLabel")}
+                </Label>
                 <Textarea
+                  id="community-description"
                   rows={3}
                   disabled={isLoading}
                   placeholder={t("createCommunity.descriptionPlaceholder")}
@@ -188,12 +196,16 @@ const CreateCommunityModal = () => {
                 />
               </div>
               <div>
-                <Label>{t("createCommunity.topicLabel")}</Label>
+                <Label htmlFor="community-topic">
+                  {t("createCommunity.topicLabel")}
+                </Label>
                 <Controller
                   name="topic"
                   control={control}
                   render={({ field }) => (
                     <Select
+                      id="community-topic"
+                      variant="outline"
                       width="100%"
                       items={topicItems}
                       value={field.value}
