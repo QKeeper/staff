@@ -7,13 +7,13 @@ import {
 } from "react-router";
 import {
   User as UserIcon,
-  Calendar,
   FileText,
   MessageSquare,
   Sparkles,
   Camera,
   AlertCircle,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { store } from "@/app/store";
 import {
   useGetUserProfileQuery,
@@ -31,11 +31,7 @@ import { PostCard } from "@/components/PostCard";
 import { UserCommentCard } from "@/components/UserCommentCard";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { Button } from "@/components/ui/Button";
-import {
-  formatDaysOnStaff,
-  formatPostsCount,
-  formatCommentsCount,
-} from "@/utils/formatPlural";
+import { formatDaysOnStaff } from "@/utils/formatPlural";
 import { cn } from "@/utils/cn";
 
 export interface ProfileLoaderData {
@@ -122,6 +118,29 @@ const ProfilePage = () => {
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const bannerSectionRef = useRef<HTMLDivElement>(null);
+
+  const [isBannerScrolled, setIsBannerScrolled] = useState(false);
+
+  useEffect(() => {
+    const el = bannerSectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsBannerScrolled(
+          !entry.isIntersecting && entry.boundingClientRect.top < 0,
+        );
+      },
+      {
+        threshold: 0,
+        rootMargin: "-64px 0px 0px 0px",
+      },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setActiveTab("overview");
@@ -323,7 +342,7 @@ const ProfilePage = () => {
       />
 
       {/* 1. Блок баннера и аватара */}
-      <div className="relative mb-12 sm:mb-16 md:mb-20">
+      <div ref={bannerSectionRef} className="relative mb-12 sm:mb-16 md:mb-20">
         {/* Баннер во всю ширину с соотношением 3:1 */}
         <div
           onClick={handleBannerClick}
@@ -540,76 +559,98 @@ const ProfilePage = () => {
 
         {/* Правая информационная колонка */}
         <div className="space-y-4 lg:col-span-1">
-          <div className="sticky top-20 rounded-xl border border-gray-800 bg-gray-900/60 p-5 backdrop-blur-sm">
-            <h2 className="text-xs font-semibold tracking-wider text-gray-400 uppercase">
-              {t("profile.about")}
-            </h2>
+          <div className="sticky top-20 space-y-5">
+            {/* Карточка пользователя (появляется при скролле, когда баннер и аватарка уходят из виду) */}
+            <AnimatePresence>
+              {isBannerScrolled && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                  className="overflow-hidden pb-1"
+                >
+                  <div className="relative mb-8">
+                    {/* Мини-баннер */}
+                    <div
+                      onClick={isOwnProfile ? handleBannerClick : undefined}
+                      className={cn(
+                        "aspect-[3/1] w-full overflow-hidden rounded-xl border border-gray-800/80 bg-gradient-to-r from-blue-950/40 via-gray-900 to-indigo-950/40",
+                        isOwnProfile && "cursor-pointer",
+                      )}
+                    >
+                      {currentBannerUrl ? (
+                        <img
+                          src={currentBannerUrl}
+                          alt={displayName}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="size-full bg-gray-900/60" />
+                      )}
+                    </div>
 
-            <div className="mt-4 flex items-center gap-3 border-b border-gray-800/80 pb-4">
-              <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 bg-gray-800 text-gray-300">
-                {currentAvatarUrl ? (
-                  <img
-                    src={currentAvatarUrl}
-                    alt={displayName}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <span className="text-sm font-bold text-gray-300 uppercase">
-                    {displayName.charAt(0)}
-                  </span>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-semibold text-gray-100">
-                  {displayName}
-                </div>
-                <div className="truncate text-xs text-gray-400">
-                  u/{profileUser.username}
-                </div>
-              </div>
-            </div>
+                    {/* Мини-аватар */}
+                    <div
+                      onClick={isOwnProfile ? handleAvatarClick : undefined}
+                      className={cn(
+                        "absolute bottom-0 left-3.5 z-10 size-14 translate-y-1/2 overflow-hidden rounded-full border-2 border-gray-950 bg-gray-900 shadow-lg",
+                        isOwnProfile && "cursor-pointer",
+                      )}
+                    >
+                      {currentAvatarUrl ? (
+                        <img
+                          src={currentAvatarUrl}
+                          alt={displayName}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center bg-gray-800 text-lg font-bold text-gray-300 uppercase">
+                          {displayName.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-            {/* Вся информация перенесена вправо: регистрация, посты, комментарии */}
-            <div className="mt-4 space-y-3.5 text-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gray-800/80 text-gray-400">
-                  <Calendar className="size-4 text-blue-400" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs text-gray-400">
-                    {t("profile.registration")}
+                  {/* Имя и ник */}
+                  <div className="min-w-0">
+                    <div className="truncate text-base font-bold text-gray-100">
+                      {displayName}
+                    </div>
+                    <div className="truncate text-xs text-gray-400">
+                      u/{profileUser.username}
+                    </div>
                   </div>
-                  <div className="font-medium text-gray-200">
-                    {formatDaysOnStaff(profileUser.createdAt, t, i18n.language)}
-                  </div>
-                </div>
-              </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gray-800/80 text-gray-400">
-                  <FileText className="size-4 text-indigo-400" />
+            {/* Чистая статистика в 2 столбика */}
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              <div>
+                <div className="text-lg font-bold text-gray-100">
+                  {posts.length}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs text-gray-400">
-                    {t("profile.publications")}
-                  </div>
-                  <div className="font-medium text-gray-200">
-                    {formatPostsCount(posts.length, t, i18n.language)}
-                  </div>
+                <div className="text-xs text-gray-400">
+                  {t("profile.publications")}
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gray-800/80 text-gray-400">
-                  <MessageSquare className="size-4 text-emerald-400" />
+              <div>
+                <div className="text-lg font-bold text-gray-100">
+                  {comments.length}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs text-gray-400">
-                    {t("profile.userComments")}
-                  </div>
-                  <div className="font-medium text-gray-200">
-                    {formatCommentsCount(comments.length, t, i18n.language)}
-                  </div>
+                <div className="text-xs text-gray-400">
+                  {t("profile.userComments")}
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <div className="text-sm font-medium text-gray-200">
+                  {formatDaysOnStaff(profileUser.createdAt, t, i18n.language)}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {t("profile.registration")}
                 </div>
               </div>
             </div>
