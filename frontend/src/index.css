@@ -10,7 +10,6 @@ html {
   scrollbar-gutter: stable;
 }
 
-.custom-scrollbar,
 textarea {
   scrollbar-gutter: stable;
 }

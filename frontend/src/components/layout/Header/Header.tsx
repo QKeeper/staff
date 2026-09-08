@@ -68,7 +68,7 @@ const Header = () => {
   };
 
   return (
-    <header>
+    <header className="sticky top-0 z-40 w-full border-b border-gray-800/80 bg-gray-950/80 backdrop-blur-md">
       <div className="mx-auto flex h-10 max-w-7xl items-center px-4 text-sm">
         <Logo />
         <Searchbar />

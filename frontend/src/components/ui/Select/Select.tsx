@@ -432,7 +432,7 @@ const Select = ({
                     aria-disabled={item.disabled}
                     disabled={item.disabled}
                     className={cn(
-                      "text-left focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                      "w-full text-left focus:outline-none disabled:pointer-events-none disabled:opacity-50",
                       itemSizeClasses[size],
                       itemVariantClasses[effectiveDropdownVariant],
                       isHighlighted &&
