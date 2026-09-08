@@ -1,1 +1,5 @@
-export { CommunityPage } from "./CommunityPage";
+export {
+  CommunityPage,
+  communityLoader,
+  type CommunityLoaderData,
+} from "./CommunityPage";

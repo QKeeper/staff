@@ -7,12 +7,22 @@ import { useEffect, useState } from "react";
 import { api, type MyCommunity } from "@/api/client";
 
 const baseStyle =
-  "inline-block w-full rounded-sm px-2 py-1 whitespace-nowrap hover:bg-gray-900";
+  "inline-block w-full rounded-sm px-2 py-1 whitespace-nowrap hover:bg-gray-900 transition-colors";
 const activeLinkStyle = cn(baseStyle, "border-l rounded-l-none bg-gray-900");
 const inactiveLinkStyle = cn(baseStyle, "text-gray-400");
+const pendingLinkStyle = cn(
+  baseStyle,
+  "text-blue-400 animate-pulse bg-gray-900/40",
+);
 
-const linkStyle = ({ isActive }: { isActive: boolean }) =>
-  isActive ? activeLinkStyle : inactiveLinkStyle;
+const linkStyle = ({
+  isActive,
+  isPending,
+}: {
+  isActive: boolean;
+  isPending: boolean;
+}) =>
+  isActive ? activeLinkStyle : isPending ? pendingLinkStyle : inactiveLinkStyle;
 
 const Link = ({ className, ...props }: NavLinkProps) => {
   return (

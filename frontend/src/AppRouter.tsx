@@ -2,7 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { AppLayout } from "./AppLayout";
 import { HomePage } from "@/pages/HomePage";
 import { ProfilePage } from "@/pages/ProfilePage";
-import { CommunityPage } from "@/pages/CommunityPage";
+import { CommunityPage, communityLoader } from "@/pages/CommunityPage";
 import { ExplorePage } from "@/pages/ExplorePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 
@@ -36,6 +36,7 @@ const router = createBrowserRouter([
       {
         path: "r/:communityName",
         element: <CommunityPage />,
+        loader: communityLoader,
       },
     ],
   },

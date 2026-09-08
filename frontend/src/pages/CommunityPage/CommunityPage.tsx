@@ -1,31 +1,33 @@
 import { api, type Community } from "@/api/client";
 import { Button } from "@/components/ui/Button";
 import { PlusIcon, Users } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router";
+import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router";
+
+export interface CommunityLoaderData {
+  community: Community | null;
+  communityName: string;
+}
+
+export const communityLoader = async ({
+  params,
+}: LoaderFunctionArgs): Promise<CommunityLoaderData> => {
+  const communityName = params.communityName || "";
+  if (!communityName) {
+    return { community: null, communityName: "" };
+  }
+
+  try {
+    const community = await api.communities.getByName(communityName);
+    return { community, communityName };
+  } catch {
+    return { community: null, communityName };
+  }
+};
 
 const CommunityPage = () => {
-  const { communityName } = useParams<{ communityName: string }>();
+  const { community, communityName } = useLoaderData<CommunityLoaderData>();
   const { t } = useTranslation();
-  const [community, setCommunity] = useState<Community | null>(null);
-
-  useEffect(() => {
-    if (!communityName) return;
-    let isMounted = true;
-    api.communities
-      .getByName(communityName)
-      .then((data) => {
-        if (isMounted) setCommunity(data);
-      })
-      .catch(() => {
-        if (isMounted) setCommunity(null);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [communityName]);
 
   return (
     <div className="flex-1 space-y-6">
