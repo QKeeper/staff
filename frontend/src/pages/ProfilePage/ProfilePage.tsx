@@ -14,12 +14,18 @@ import {
   Camera,
   AlertCircle,
 } from "lucide-react";
+import { store } from "@/app/store";
 import {
-  api,
-  type Post,
-  type UserComment,
-  type UserProfile,
-} from "@/api/client";
+  useGetUserProfileQuery,
+  useUpdateAvatarMutation,
+  useUpdateBannerMutation,
+  usersApiSlice,
+} from "@/features/users/usersApiSlice";
+import {
+  useGetPostsQuery,
+  useListUserCommentsQuery,
+  postsApiSlice,
+} from "@/features/posts/postsApiSlice";
 import { useAuth } from "@/context/AuthContext";
 import { PostCard } from "@/components/PostCard";
 import { UserCommentCard } from "@/components/UserCommentCard";
@@ -33,10 +39,7 @@ import {
 import { cn } from "@/utils/cn";
 
 export interface ProfileLoaderData {
-  profileUser: UserProfile | null;
   username: string;
-  initialPosts: Post[];
-  initialComments: UserComment[];
 }
 
 export const profileLoader = async ({
@@ -44,56 +47,63 @@ export const profileLoader = async ({
 }: LoaderFunctionArgs): Promise<ProfileLoaderData> => {
   const username = params.username || "";
   if (!username) {
-    return {
-      profileUser: null,
-      username: "",
-      initialPosts: [],
-      initialComments: [],
-    };
+    return { username: "" };
   }
 
-  try {
-    const [userRes, posts, comments] = await Promise.all([
-      api.users.getByUsername(username),
-      api.posts.list({ authorUsername: username, sort: "new" }).catch(() => []),
-      api.posts.listUserComments(username).catch(() => []),
-    ]);
-    return {
-      profileUser: userRes.user,
-      username,
-      initialPosts: posts,
-      initialComments: comments,
-    };
-  } catch {
-    return {
-      profileUser: null,
-      username,
-      initialPosts: [],
-      initialComments: [],
-    };
-  }
+  // Pre-load all data into RTK Query store before completing navigation
+  await Promise.all([
+    store.dispatch(usersApiSlice.endpoints.getUserProfile.initiate(username)),
+    store.dispatch(
+      postsApiSlice.endpoints.getPosts.initiate({
+        authorUsername: username,
+        sort: "new",
+      }),
+    ),
+    store.dispatch(postsApiSlice.endpoints.listUserComments.initiate(username)),
+  ]);
+
+  return { username };
 };
 
 type TabType = "overview" | "posts" | "comments";
 
 const ProfilePage = () => {
-  const { profileUser, username, initialPosts, initialComments } =
-    useLoaderData<ProfileLoaderData>();
+  const { username } = useLoaderData<ProfileLoaderData>();
   const { user, refreshUser } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState<TabType>("overview");
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [comments, setComments] = useState<UserComment[]>(initialComments);
 
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(
-    profileUser?.avatarUrl || null,
+  // Read immediately from RTK Query cache hydrated by profileLoader
+  const { data: profileUserData } = useGetUserProfileQuery(username, {
+    skip: !username,
+  });
+  const profileUser = profileUserData?.user || null;
+
+  const { data: posts = [] } = useGetPostsQuery(
+    { authorUsername: username, sort: "new" },
+    { skip: !username },
   );
-  const [currentBannerUrl, setCurrentBannerUrl] = useState<string | null>(
-    profileUser?.bannerUrl || null,
+  const { data: comments = [] } = useListUserCommentsQuery(username, {
+    skip: !username,
+  });
+
+  const [updateAvatarMutation] = useUpdateAvatarMutation();
+  const [updateBannerMutation] = useUpdateBannerMutation();
+
+  const [optimisticAvatarUrl, setOptimisticAvatarUrl] = useState<string | null>(
+    null,
+  );
+  const [optimisticBannerUrl, setOptimisticBannerUrl] = useState<string | null>(
+    null,
   );
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const currentAvatarUrl =
+    optimisticAvatarUrl || profileUser?.avatarUrl || null;
+  const currentBannerUrl =
+    optimisticBannerUrl || profileUser?.bannerUrl || null;
 
   const [cropAvatarFile, setCropAvatarFile] = useState<File | null>(null);
   const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
@@ -112,49 +122,11 @@ const ProfilePage = () => {
   );
 
   useEffect(() => {
-    setPosts(initialPosts);
-    setComments(initialComments);
     setActiveTab("overview");
-    setCurrentAvatarUrl(profileUser?.avatarUrl || null);
-    setCurrentBannerUrl(profileUser?.bannerUrl || null);
+    setOptimisticAvatarUrl(null);
+    setOptimisticBannerUrl(null);
     setUploadError(null);
-  }, [initialPosts, initialComments, username, profileUser]);
-
-  const handlePostVoteChange = (
-    postId: string,
-    newScore: number,
-    newUserVote: number,
-  ) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? {
-              ...p,
-              score: newScore,
-              userVote: newUserVote,
-            }
-          : p,
-      ),
-    );
-  };
-
-  const handleCommentVoteChange = (
-    commentId: string,
-    newScore: number,
-    newUserVote: number,
-  ) => {
-    setComments((prev) =>
-      prev.map((c) =>
-        c.id === commentId
-          ? {
-              ...c,
-              score: newScore,
-              userVote: newUserVote,
-            }
-          : c,
-      ),
-    );
-  };
+  }, [username]);
 
   const handleAvatarClick = () => {
     if (!isOwnProfile) return;
@@ -183,47 +155,15 @@ const ProfilePage = () => {
   };
 
   const handleApplyCroppedAvatar = async (croppedDataUrl: string) => {
-    const previousAvatar = currentAvatarUrl;
-    const previousPosts = posts;
-    const previousComments = comments;
-
-    // Optimistic update
-    setCurrentAvatarUrl(croppedDataUrl);
-    setPosts((prev) =>
-      prev.map((p) => ({
-        ...p,
-        author: { ...p.author, avatarUrl: croppedDataUrl },
-      })),
-    );
-    setComments((prev) =>
-      prev.map((c) => ({
-        ...c,
-        author: { ...c.author, avatarUrl: croppedDataUrl },
-      })),
-    );
-
+    setOptimisticAvatarUrl(croppedDataUrl);
     try {
-      const res = await api.users.updateAvatar(croppedDataUrl);
-      const newAvatarUrl = res.user.avatarUrl || croppedDataUrl;
-      setCurrentAvatarUrl(newAvatarUrl);
-      setPosts((prev) =>
-        prev.map((p) => ({
-          ...p,
-          author: { ...p.author, avatarUrl: newAvatarUrl },
-        })),
-      );
-      setComments((prev) =>
-        prev.map((c) => ({
-          ...c,
-          author: { ...c.author, avatarUrl: newAvatarUrl },
-        })),
-      );
+      await updateAvatarMutation({ image: croppedDataUrl }).unwrap();
       await refreshUser();
     } catch {
-      setCurrentAvatarUrl(previousAvatar);
-      setPosts(previousPosts);
-      setComments(previousComments);
+      setOptimisticAvatarUrl(null);
       setUploadError(t("profile.uploadError"));
+    } finally {
+      setOptimisticAvatarUrl(null);
     }
   };
 
@@ -244,19 +184,15 @@ const ProfilePage = () => {
   };
 
   const handleApplyCroppedBanner = async (croppedDataUrl: string) => {
-    const previousBanner = currentBannerUrl;
-    // Optimistic update
-    setCurrentBannerUrl(croppedDataUrl);
-
+    setOptimisticBannerUrl(croppedDataUrl);
     try {
-      const res = await api.users.updateBanner(croppedDataUrl);
-      if (res.user.bannerUrl) {
-        setCurrentBannerUrl(res.user.bannerUrl);
-      }
+      await updateBannerMutation({ image: croppedDataUrl }).unwrap();
       await refreshUser();
     } catch {
-      setCurrentBannerUrl(previousBanner);
+      setOptimisticBannerUrl(null);
       setUploadError(t("profile.uploadError"));
+    } finally {
+      setOptimisticBannerUrl(null);
     }
   };
 
@@ -508,17 +444,9 @@ const ProfilePage = () => {
                 <div className="divide-y divide-gray-800/80">
                   {activities.map((item) =>
                     item.type === "post" ? (
-                      <PostCard
-                        key={item.id}
-                        post={item.post}
-                        onVoteChange={handlePostVoteChange}
-                      />
+                      <PostCard key={item.id} post={item.post} />
                     ) : (
-                      <UserCommentCard
-                        key={item.id}
-                        comment={item.comment}
-                        onVoteChange={handleCommentVoteChange}
-                      />
+                      <UserCommentCard key={item.id} comment={item.comment} />
                     ),
                   )}
                 </div>
@@ -540,11 +468,7 @@ const ProfilePage = () => {
               ) : (
                 <div className="divide-y divide-gray-800/80">
                   {posts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onVoteChange={handlePostVoteChange}
-                    />
+                    <PostCard key={post.id} post={post} />
                   ))}
                 </div>
               ))}
@@ -565,11 +489,7 @@ const ProfilePage = () => {
               ) : (
                 <div className="divide-y divide-gray-800/80">
                   {comments.map((comment) => (
-                    <UserCommentCard
-                      key={comment.id}
-                      comment={comment}
-                      onVoteChange={handleCommentVoteChange}
-                    />
+                    <UserCommentCard key={comment.id} comment={comment} />
                   ))}
                 </div>
               ))}

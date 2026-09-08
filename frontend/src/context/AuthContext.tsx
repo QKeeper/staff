@@ -11,6 +11,9 @@ import {
   communityCacheUtils,
   myCommunitiesCacheUtils,
 } from "@/api/client";
+import { store } from "@/app/store";
+import { apiSlice } from "@/features/api/apiSlice";
+import { usersApiSlice } from "@/features/users/usersApiSlice";
 
 interface AuthContextType {
   user: User | null;
@@ -83,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const res = await api.auth.me();
       cachedUser = res.user;
       setUser(res.user);
+      store.dispatch(usersApiSlice.util.invalidateTags(["User"]));
     } catch {
       cachedUser = null;
       setUser(null);
@@ -95,8 +99,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const res = await api.auth.login(data);
     cachedUser = res.user;
     setUser(res.user);
-    // Refresh user's communities upon login
-    api.communities.getMyCommunities(true).catch(() => []);
+    store.dispatch(
+      usersApiSlice.util.invalidateTags(["User", "MyCommunities"]),
+    );
   };
 
   const register = async (data: {
@@ -107,8 +112,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const res = await api.auth.register(data);
     cachedUser = res.user;
     setUser(res.user);
-    // Refresh user's communities upon register
-    api.communities.getMyCommunities(true).catch(() => []);
+    store.dispatch(
+      usersApiSlice.util.invalidateTags(["User", "MyCommunities"]),
+    );
   };
 
   const logout = async () => {
@@ -119,6 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(null);
       myCommunitiesCacheUtils.clear();
       communityCacheUtils.clear();
+      store.dispatch(apiSlice.util.resetApiState());
     }
   };
 

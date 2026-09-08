@@ -1,27 +1,27 @@
-import { api, type MyCommunity } from "@/api/client";
-import { Select, type SelectItem } from "@/components/ui/Select";
-import { getAuthUser } from "@/context/AuthContext";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLoaderData } from "react-router";
+import { Select, type SelectItem } from "@/components/ui/Select";
+import { store } from "@/app/store";
+import { communitiesApiSlice } from "@/features/communities/communitiesApiSlice";
+import { usersApiSlice } from "@/features/users/usersApiSlice";
+import { postsApiSlice } from "@/features/posts/postsApiSlice";
 
-export interface HomeLoaderData {
-  myCommunities: MyCommunity[];
-}
-
-export const homeLoader = async (): Promise<HomeLoaderData> => {
-  const user = await getAuthUser();
-  if (!user) {
-    return { myCommunities: [] };
+export const homeLoader = async () => {
+  const meRes = await store.dispatch(usersApiSlice.endpoints.getMe.initiate());
+  const promises: Promise<unknown>[] = [
+    store.dispatch(postsApiSlice.endpoints.getPosts.initiate({ sort: "best" })),
+  ];
+  if (meRes.data?.user) {
+    promises.push(
+      store.dispatch(communitiesApiSlice.endpoints.getMyCommunities.initiate()),
+    );
   }
-  const myCommunities = await api.communities.getMyCommunities();
-  return { myCommunities };
+  await Promise.all(promises);
+  return null;
 };
 
 const HomePage = () => {
-  const { myCommunities } = useLoaderData<HomeLoaderData>();
   const { t } = useTranslation();
-  void myCommunities;
 
   const sortItems: SelectItem[] = [
     { label: t("feed.sort.best"), value: "best" },

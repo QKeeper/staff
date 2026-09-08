@@ -16,7 +16,14 @@ import {
   User as UserIcon,
   MessageSquare,
 } from "lucide-react";
-import { api, type Comment, type Post } from "@/api/client";
+import { type Comment } from "@/api/client";
+import { store } from "@/app/store";
+import {
+  postsApiSlice,
+  useGetPostByIdQuery,
+  useListPostCommentsQuery,
+  useCreateCommentMutation,
+} from "@/features/posts/postsApiSlice";
 import { useAuth } from "@/context/AuthContext";
 import { useOptimisticVote } from "@/hooks/useOptimisticVote";
 import { CommentItem, type CommentNode } from "@/components/CommentItem";
@@ -46,8 +53,7 @@ function buildCommentTree(comments: Comment[]): CommentNode[] {
 }
 
 export interface PostLoaderData {
-  post: Post | null;
-  initialComments: Comment[];
+  postId: string;
 }
 
 export const postLoader = async ({
@@ -55,48 +61,41 @@ export const postLoader = async ({
 }: LoaderFunctionArgs): Promise<PostLoaderData> => {
   const postId = params.postId || "";
   if (!postId) {
-    return { post: null, initialComments: [] };
+    return { postId: "" };
   }
 
-  try {
-    const [post, initialComments] = await Promise.all([
-      api.posts.getById(postId),
-      api.posts.listComments(postId).catch(() => []),
-    ]);
-    return { post, initialComments };
-  } catch {
-    return { post: null, initialComments: [] };
-  }
+  await Promise.all([
+    store.dispatch(postsApiSlice.endpoints.getPostById.initiate(postId)),
+    store.dispatch(postsApiSlice.endpoints.listPostComments.initiate(postId)),
+  ]);
+
+  return { postId };
 };
 
 export const PostPage = () => {
-  const { post: initialPost, initialComments } =
-    useLoaderData<PostLoaderData>();
+  const { postId } = useLoaderData<PostLoaderData>();
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetCommentId = searchParams.get("commentId");
 
-  const [post, setPost] = useState<Post | null>(initialPost);
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const { data: post = null } = useGetPostByIdQuery(postId, { skip: !postId });
+  const { data: comments = [] } = useListPostCommentsQuery(postId, {
+    skip: !postId,
+  });
+  const [createCommentMutation] = useCreateCommentMutation();
+
   const [commentContent, setCommentContent] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   const { score, userVote, handleVote } = useOptimisticVote({
     postId: post?.id || "",
-    initialScore: initialPost
-      ? (initialPost.score ?? initialPost.upvotes - initialPost.downvotes)
-      : 0,
-    initialUserVote: initialPost?.userVote ?? 0,
+    initialScore: post ? (post.score ?? post.upvotes - post.downvotes) : 0,
+    initialUserVote: post?.userVote ?? 0,
   });
 
   const [isCopied, setIsCopied] = useState(false);
-
-  useEffect(() => {
-    setPost(initialPost);
-    setComments(initialComments);
-  }, [initialPost, initialComments]);
 
   const commentTree = useMemo(() => {
     const roots = buildCommentTree(comments);
@@ -115,10 +114,6 @@ export const PostPage = () => {
     }
     return roots;
   }, [comments, targetCommentId]);
-
-  const handleReplyCreated = (newReply: Comment) => {
-    setComments((prev) => [...prev, newReply]);
-  };
 
   useEffect(() => {
     if (targetCommentId) {
@@ -176,8 +171,10 @@ export const PostPage = () => {
 
     setIsSubmittingComment(true);
     try {
-      const newComment = await api.posts.createComment(post.id, trimmed);
-      setComments((prev) => [...prev, newComment]);
+      await createCommentMutation({
+        postId: post.id,
+        content: trimmed,
+      }).unwrap();
       setCommentContent("");
     } catch {
       // Handle error
@@ -392,14 +389,11 @@ export const PostPage = () => {
                 comment={rootComment}
                 postId={post.id}
                 targetCommentId={targetCommentId}
-                onReplyCreated={handleReplyCreated}
-                onVoteChange={(commentId, newScore, newUserVote) => {
-                  setComments((prev) =>
-                    prev.map((c) =>
-                      c.id === commentId
-                        ? { ...c, score: newScore, userVote: newUserVote }
-                        : c,
-                    ),
+                onReplyCreated={() => {
+                  store.dispatch(
+                    postsApiSlice.util.invalidateTags([
+                      { type: "Comment", id: `POST_${post.id}` },
+                    ]),
                   );
                 }}
               />

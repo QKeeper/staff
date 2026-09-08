@@ -1,8 +1,10 @@
 import { Outlet, useNavigation } from "react-router";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { api, type MyCommunity, type User } from "@/api/client";
-import { getAuthUser } from "@/context/AuthContext";
+import type { MyCommunity, User } from "@/api/client";
+import { store } from "@/app/store";
+import { usersApiSlice } from "@/features/users/usersApiSlice";
+import { communitiesApiSlice } from "@/features/communities/communitiesApiSlice";
 
 export interface LayoutLoaderData {
   user: User | null;
@@ -10,8 +12,15 @@ export interface LayoutLoaderData {
 }
 
 export const layoutLoader = async (): Promise<LayoutLoaderData> => {
-  const user = await getAuthUser();
-  const communities = user ? await api.communities.getMyCommunities() : [];
+  const meRes = await store.dispatch(usersApiSlice.endpoints.getMe.initiate());
+  const user = meRes.data?.user ?? null;
+  let communities: MyCommunity[] = [];
+  if (user) {
+    const commRes = await store.dispatch(
+      communitiesApiSlice.endpoints.getMyCommunities.initiate(),
+    );
+    communities = commRes.data ?? [];
+  }
   return { user, communities };
 };
 

@@ -1,16 +1,22 @@
-import { api, type Community, type Post } from "@/api/client";
+import { store } from "@/app/store";
+import {
+  communitiesApiSlice,
+  useGetCommunityByNameQuery,
+} from "@/features/communities/communitiesApiSlice";
+import {
+  postsApiSlice,
+  useGetPostsQuery,
+} from "@/features/posts/postsApiSlice";
 import { Button } from "@/components/ui/Button";
 import { Select, type SelectItem } from "@/components/ui/Select";
 import { PostCard } from "@/components/PostCard";
 import { MessageSquarePlus, PlusIcon, Users } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router";
 
 export interface CommunityLoaderData {
-  community: Community | null;
   communityName: string;
-  initialPosts: Post[];
 }
 
 export const communityLoader = async ({
@@ -18,34 +24,37 @@ export const communityLoader = async ({
 }: LoaderFunctionArgs): Promise<CommunityLoaderData> => {
   const communityName = params.communityName || "";
   if (!communityName) {
-    return { community: null, communityName: "", initialPosts: [] };
+    return { communityName: "" };
   }
 
-  try {
-    const [community, initialPosts] = await Promise.all([
-      api.communities.getByName(communityName),
-      api.posts.list({ communityName, sort: "best" }).catch(() => []),
-    ]);
-    return { community, communityName, initialPosts };
-  } catch {
-    return { community: null, communityName, initialPosts: [] };
-  }
+  await Promise.all([
+    store.dispatch(
+      communitiesApiSlice.endpoints.getCommunityByName.initiate(communityName),
+    ),
+    store.dispatch(
+      postsApiSlice.endpoints.getPosts.initiate({
+        communityName,
+        sort: "best",
+      }),
+    ),
+  ]);
+
+  return { communityName };
 };
 
 const CommunityPage = () => {
-  const { community, communityName, initialPosts } =
-    useLoaderData<CommunityLoaderData>();
+  const { communityName } = useLoaderData<CommunityLoaderData>();
   const { t } = useTranslation();
 
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [sortValue, setSortValue] = useState<"best" | "top" | "new">("best");
-  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
-  // Sync with initialPosts when route changes
-  useEffect(() => {
-    setPosts(initialPosts);
-    setSortValue("best");
-  }, [initialPosts, communityName]);
+  const { data: community = null } = useGetCommunityByNameQuery(communityName, {
+    skip: !communityName,
+  });
+  const { data: posts = [], isFetching: isLoadingPosts } = useGetPostsQuery(
+    { communityName, sort: sortValue },
+    { skip: !communityName },
+  );
 
   const sortItems: SelectItem[] = useMemo(
     () => [
@@ -56,39 +65,8 @@ const CommunityPage = () => {
     [t],
   );
 
-  const handleSortChange = async (item: SelectItem) => {
-    const newSort = item.value as "best" | "top" | "new";
-    setSortValue(newSort);
-    setIsLoadingPosts(true);
-    try {
-      const data = await api.posts.list({
-        communityName,
-        sort: newSort,
-      });
-      setPosts(data);
-    } catch {
-      // Keep existing posts on error
-    } finally {
-      setIsLoadingPosts(false);
-    }
-  };
-
-  const handleVoteChange = (
-    postId: string,
-    newScore: number,
-    newUserVote: number,
-  ) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? {
-              ...p,
-              score: newScore,
-              userVote: newUserVote,
-            }
-          : p,
-      ),
-    );
+  const handleSortChange = (item: SelectItem) => {
+    setSortValue(item.value as "best" | "top" | "new");
   };
 
   if (!community) {
@@ -198,11 +176,7 @@ const CommunityPage = () => {
         ) : (
           <div className="divide-y divide-gray-800/80">
             {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onVoteChange={handleVoteChange}
-              />
+              <PostCard key={post.id} post={post} />
             ))}
           </div>
         )}
