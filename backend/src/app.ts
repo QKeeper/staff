@@ -24,6 +24,13 @@ export const createApp = (): Express => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Mock delay in development mode (1000ms)
+  if (env.NODE_ENV === "development") {
+    app.use((_req, _res, next) => {
+      setTimeout(next, 1000);
+    });
+  }
+
   // Health check
   app.get("/health", (_req, res) => {
     sendSuccess(res, { status: "ok", timestamp: new Date().toISOString() });
