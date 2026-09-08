@@ -7,7 +7,6 @@ import {
   type LoaderFunctionArgs,
 } from "react-router";
 import {
-  ArrowLeft,
   ArrowBigUp,
   ArrowBigDown,
   Repeat2,
@@ -135,31 +134,8 @@ export const PostPage = () => {
     }
   };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else if (post.community) {
-      navigate(`/r/${post.community.name}`);
-    } else {
-      navigate("/");
-    }
-  };
-
   return (
     <div className="flex-1 space-y-6 pb-20">
-      {/* Top back navigation button */}
-      <div>
-        <Button
-          variant="ghost"
-          size="small"
-          onClick={handleBack}
-          icon={<ArrowLeft className="size-4" />}
-          className="text-gray-400 hover:text-gray-100"
-        >
-          {t("postPage.back")}
-        </Button>
-      </div>
-
       {/* Main post view */}
       <article className="space-y-4 border-b border-gray-800/80 pb-6">
         {/* Author / Community info */}
