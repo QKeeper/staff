@@ -8,7 +8,7 @@ import { AuthModal } from "@/components/AuthModal";
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout } = useAuth();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   useEffect(() => {
@@ -16,10 +16,6 @@ const Profile = () => {
     window.addEventListener("open-auth-modal", handleOpen);
     return () => window.removeEventListener("open-auth-modal", handleOpen);
   }, []);
-
-  if (isLoading) {
-    return <div className="size-8 animate-pulse rounded-full bg-gray-800" />;
-  }
 
   if (!user) {
     return (
@@ -67,8 +63,19 @@ const Profile = () => {
         <Button
           variant="ghost"
           size="small"
-          className="shrink-0 rounded-sm px-3"
+          className="shrink-0 gap-2 rounded-sm px-2"
         >
+          <div className="flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-800 text-gray-300">
+            {user.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.username}
+                className="size-full rounded-full object-cover"
+              />
+            ) : (
+              <UserIcon className="size-3 text-gray-400" />
+            )}
+          </div>
           <span>{user.username}</span>
         </Button>
       </Dropdown.Trigger>

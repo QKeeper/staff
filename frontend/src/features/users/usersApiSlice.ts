@@ -25,6 +25,37 @@ export const usersApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body,
       }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data?.user) {
+            dispatch(
+              usersApiSlice.util.updateQueryData(
+                "getMe",
+                undefined,
+                (draft) => {
+                  if (draft?.user) {
+                    draft.user.avatarUrl = data.user.avatarUrl;
+                  }
+                },
+              ),
+            );
+            dispatch(
+              usersApiSlice.util.updateQueryData(
+                "getUserProfile",
+                data.user.username,
+                (draft) => {
+                  if (draft?.user) {
+                    draft.user.avatarUrl = data.user.avatarUrl;
+                  }
+                },
+              ),
+            );
+          }
+        } catch {
+          // ignore error
+        }
+      },
       invalidatesTags: ["User", "Post", "Comment"],
     }),
     updateBanner: build.mutation<{ user: User }, { image: string }>({
@@ -33,6 +64,37 @@ export const usersApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body,
       }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          if (data?.user) {
+            dispatch(
+              usersApiSlice.util.updateQueryData(
+                "getMe",
+                undefined,
+                (draft) => {
+                  if (draft?.user) {
+                    draft.user.bannerUrl = data.user.bannerUrl;
+                  }
+                },
+              ),
+            );
+            dispatch(
+              usersApiSlice.util.updateQueryData(
+                "getUserProfile",
+                data.user.username,
+                (draft) => {
+                  if (draft?.user) {
+                    draft.user.bannerUrl = data.user.bannerUrl;
+                  }
+                },
+              ),
+            );
+          }
+        } catch {
+          // ignore error
+        }
+      },
       invalidatesTags: (result) =>
         result?.user
           ? [

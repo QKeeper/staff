@@ -69,7 +69,7 @@ type TabType = "overview" | "posts" | "comments";
 
 const ProfilePage = () => {
   const { username } = useLoaderData<ProfileLoaderData>();
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUser } = useAuth();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -100,10 +100,19 @@ const ProfilePage = () => {
   );
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const currentAvatarUrl =
-    optimisticAvatarUrl || profileUser?.avatarUrl || null;
-  const currentBannerUrl =
-    optimisticBannerUrl || profileUser?.bannerUrl || null;
+  const isOwnProfile = Boolean(
+    user &&
+    profileUser &&
+    (user.id === profileUser.id ||
+      user.username.toLowerCase() === profileUser.username.toLowerCase()),
+  );
+
+  const currentAvatarUrl = isOwnProfile
+    ? optimisticAvatarUrl || user?.avatarUrl || profileUser?.avatarUrl || null
+    : profileUser?.avatarUrl || null;
+  const currentBannerUrl = isOwnProfile
+    ? optimisticBannerUrl || user?.bannerUrl || profileUser?.bannerUrl || null
+    : profileUser?.bannerUrl || null;
 
   const [cropAvatarFile, setCropAvatarFile] = useState<File | null>(null);
   const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
@@ -113,13 +122,6 @@ const ProfilePage = () => {
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
-
-  const isOwnProfile = Boolean(
-    user &&
-    profileUser &&
-    (user.id === profileUser.id ||
-      user.username.toLowerCase() === profileUser.username.toLowerCase()),
-  );
 
   useEffect(() => {
     setActiveTab("overview");
@@ -156,10 +158,19 @@ const ProfilePage = () => {
 
   const handleApplyCroppedAvatar = async (croppedDataUrl: string) => {
     setOptimisticAvatarUrl(croppedDataUrl);
+    const previousUser = user;
+    if (user) {
+      updateUser({ avatarUrl: croppedDataUrl });
+    }
     try {
-      await updateAvatarMutation({ image: croppedDataUrl }).unwrap();
-      await refreshUser();
+      const res = await updateAvatarMutation({
+        image: croppedDataUrl,
+      }).unwrap();
+      await refreshUser(res?.user);
     } catch {
+      if (previousUser) {
+        updateUser({ avatarUrl: previousUser.avatarUrl });
+      }
       setOptimisticAvatarUrl(null);
       setUploadError(t("profile.uploadError"));
     } finally {
@@ -185,10 +196,19 @@ const ProfilePage = () => {
 
   const handleApplyCroppedBanner = async (croppedDataUrl: string) => {
     setOptimisticBannerUrl(croppedDataUrl);
+    const previousUser = user;
+    if (user) {
+      updateUser({ bannerUrl: croppedDataUrl });
+    }
     try {
-      await updateBannerMutation({ image: croppedDataUrl }).unwrap();
-      await refreshUser();
+      const res = await updateBannerMutation({
+        image: croppedDataUrl,
+      }).unwrap();
+      await refreshUser(res?.user);
     } catch {
+      if (previousUser) {
+        updateUser({ bannerUrl: previousUser.bannerUrl });
+      }
       setOptimisticBannerUrl(null);
       setUploadError(t("profile.uploadError"));
     } finally {
@@ -196,14 +216,36 @@ const ProfilePage = () => {
     }
   };
 
+  const displayPosts = useMemo(() => {
+    if (!isOwnProfile || !currentAvatarUrl) return posts;
+    return posts.map((post) => ({
+      ...post,
+      author: {
+        ...post.author,
+        avatarUrl: currentAvatarUrl,
+      },
+    }));
+  }, [posts, isOwnProfile, currentAvatarUrl]);
+
+  const displayComments = useMemo(() => {
+    if (!isOwnProfile || !currentAvatarUrl) return comments;
+    return comments.map((comment) => ({
+      ...comment,
+      author: {
+        ...comment.author,
+        avatarUrl: currentAvatarUrl,
+      },
+    }));
+  }, [comments, isOwnProfile, currentAvatarUrl]);
+
   const activities = useMemo(() => {
-    const p = posts.map((post) => ({
+    const p = displayPosts.map((post) => ({
       type: "post" as const,
       id: `post-${post.id}`,
       createdAt: post.createdAt,
       post,
     }));
-    const c = comments.map((comment) => ({
+    const c = displayComments.map((comment) => ({
       type: "comment" as const,
       id: `comment-${comment.id}`,
       createdAt: comment.createdAt,
@@ -213,7 +255,7 @@ const ProfilePage = () => {
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-  }, [posts, comments]);
+  }, [displayPosts, displayComments]);
 
   if (!profileUser) {
     return (
@@ -467,7 +509,7 @@ const ProfilePage = () => {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-800/80">
-                  {posts.map((post) => (
+                  {displayPosts.map((post) => (
                     <PostCard key={post.id} post={post} />
                   ))}
                 </div>
@@ -488,7 +530,7 @@ const ProfilePage = () => {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-800/80">
-                  {comments.map((comment) => (
+                  {displayComments.map((comment) => (
                     <UserCommentCard key={comment.id} comment={comment} />
                   ))}
                 </div>

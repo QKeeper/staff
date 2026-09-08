@@ -25,7 +25,8 @@ interface AuthContextType {
     password: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: (updatedUser?: User) => Promise<void>;
+  updateUser: (partialUser: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,7 +68,7 @@ export async function getAuthUser(forceRefresh = false): Promise<User | null> {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => getCachedUser());
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = false;
 
   useEffect(() => {
     let isMounted = true;
@@ -80,8 +81,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const refreshUser = async () => {
-    setIsLoading(true);
+  const updateUser = (partialUser: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...partialUser };
+      cachedUser = updated;
+      return updated;
+    });
+  };
+
+  const refreshUser = async (updatedUser?: User) => {
+    if (updatedUser) {
+      cachedUser = updatedUser;
+      setUser(updatedUser);
+      store.dispatch(usersApiSlice.util.invalidateTags(["User"]));
+      return;
+    }
     try {
       const res = await api.auth.me();
       cachedUser = res.user;
@@ -90,8 +105,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch {
       cachedUser = null;
       setUser(null);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -138,6 +151,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register,
         logout,
         refreshUser,
+        updateUser,
       }}
     >
       {children}
