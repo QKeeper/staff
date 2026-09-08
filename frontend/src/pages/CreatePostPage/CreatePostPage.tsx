@@ -11,10 +11,17 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import { useAuth } from "@/context/AuthContext";
-import { ArrowUpRight, User, Users } from "lucide-react";
+import { ArrowUpRight, Loader2, Paperclip, User, Users, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
+
+interface AttachedMediaItem {
+  id: string;
+  url: string;
+  type: "image" | "video" | "gif";
+  name: string;
+}
 
 interface DestinationItem {
   type: "profile" | "community";
@@ -111,6 +118,11 @@ const CreatePostPage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [attachedMedia, setAttachedMedia] = useState<AttachedMediaItem[]>([]);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [mediaError, setMediaError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load user's communities
   useEffect(() => {
@@ -395,7 +407,60 @@ const CreatePostPage = () => {
     }
   };
 
-  const canSubmit = Boolean(title.trim() && selectedDestination);
+  const handleOpenFileDialog = () => {
+    setMediaError(null);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    e.target.value = "";
+
+    const remainingSlots = 10 - attachedMedia.length;
+    if (remainingSlots <= 0) {
+      setMediaError(t("createPost.errors.maxMediaLimit"));
+      return;
+    }
+
+    const filesToUpload = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      setMediaError(t("createPost.errors.maxMediaLimitExceeded"));
+    }
+
+    const MAX_SIZE = 50 * 1024 * 1024;
+    for (const file of filesToUpload) {
+      if (file.size > MAX_SIZE) {
+        setMediaError(t("media.fileTooLarge"));
+        return;
+      }
+    }
+
+    setIsUploadingMedia(true);
+    try {
+      const res = await api.posts.uploadMedia(filesToUpload);
+      const newItems: AttachedMediaItem[] = res.map((item) => ({
+        id: crypto.randomUUID(),
+        url: item.url,
+        type: item.type,
+        name: item.name,
+      }));
+      setAttachedMedia((prev) => [...prev, ...newItems]);
+    } catch {
+      setMediaError(t("createPost.errors.uploadFailed"));
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
+
+  const handleRemoveMedia = (id: string) => {
+    setAttachedMedia((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const canSubmit = Boolean(
+    title.trim() && selectedDestination && !isUploadingMedia,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -408,6 +473,10 @@ const CreatePostPage = () => {
       const createdPost = await api.posts.create({
         title: title.trim(),
         content: content.trim() || undefined,
+        media:
+          attachedMedia.length > 0
+            ? attachedMedia.map((m) => ({ url: m.url, type: m.type }))
+            : undefined,
         communityId:
           selectedDestination?.type === "community"
             ? selectedDestination.id
@@ -508,6 +577,95 @@ const CreatePostPage = () => {
                 placeholder={t("createPost.contentPlaceholder")}
                 className="bg-transparent"
               />
+
+              {/* Media Toolbar */}
+              <div className="mt-2.5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="small"
+                    icon={<Paperclip className="size-4" />}
+                    onClick={handleOpenFileDialog}
+                    disabled={attachedMedia.length >= 10 || isUploadingMedia}
+                  >
+                    {t("createPost.attachMedia")}
+                  </Button>
+                  <span className="text-xs text-gray-400 select-none">
+                    {attachedMedia.length}/10
+                  </span>
+                </div>
+
+                {isUploadingMedia && (
+                  <div className="flex items-center gap-1.5 text-xs text-orange-400">
+                    <Loader2 className="size-3.5 animate-spin" />
+                    <span>{t("createPost.uploadingMedia")}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/mp4,video/webm,video/quicktime,image/gif"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+
+              {/* Media Error alert */}
+              {mediaError && (
+                <div className="mt-2 rounded border border-red-800/60 bg-red-950/30 p-2.5 text-xs text-red-300">
+                  {mediaError}
+                </div>
+              )}
+
+              {/* Attached media previews */}
+              {attachedMedia.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+                  {attachedMedia.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="group relative flex h-24 items-center justify-center overflow-hidden rounded-lg border border-gray-800 bg-black/50 sm:h-28"
+                    >
+                      {item.type === "video" ? (
+                        <video
+                          src={item.url}
+                          muted
+                          preload="metadata"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <img
+                          src={item.url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+
+                      {/* Badge */}
+                      <span className="absolute bottom-1.5 left-1.5 rounded bg-black/80 px-1 py-0.5 text-[9px] font-bold tracking-wider text-gray-200 uppercase select-none">
+                        {item.type === "video"
+                          ? "VIDEO"
+                          : item.type === "gif"
+                            ? "GIF"
+                            : `${idx + 1}`}
+                      </span>
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMedia(item.id)}
+                        aria-label={t("createPost.removeMedia")}
+                        className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-black/75 text-white transition hover:bg-red-600 active:scale-95"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* 4. Footer with submit button */}

@@ -12,8 +12,16 @@ import {
   optionalAuth,
   requireAuth,
 } from "../../common/middlewares/requireAuth.js";
+import { mediaUpload } from "../../common/middlewares/mediaUpload.js";
 
 const router = Router();
+
+router.post(
+  "/upload-media",
+  requireAuth,
+  mediaUpload.array("files", 10),
+  PostController.uploadMedia,
+);
 
 router.post(
   "/",

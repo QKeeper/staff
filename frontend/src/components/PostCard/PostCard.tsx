@@ -14,6 +14,8 @@ import { type Post } from "@/api/client";
 import { useOptimisticVote } from "@/hooks/useOptimisticVote";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import { cn } from "@/utils/cn";
+import { PostMediaGrid } from "../PostMediaGrid/PostMediaGrid";
+import { PostContent } from "../PostContent/PostContent";
 
 export interface PostCardProps {
   post: Post;
@@ -99,28 +101,29 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
       {/* 3. Описание */}
       {post.content && (
         <div className="mt-2">
-          <p className="text-sm leading-relaxed whitespace-pre-line text-gray-300">
-            {post.content}
-          </p>
+          <PostContent content={post.content} size="sm" />
         </div>
       )}
 
       {/* 4. Медиа превью */}
-      {post.mediaUrl && (
-        <div className="mt-3 overflow-hidden rounded-lg border border-gray-800 bg-black/40">
-          <img
-            src={post.mediaUrl}
-            alt={post.title}
-            className="max-h-[500px] w-auto max-w-full object-contain"
-            loading="lazy"
+      {Boolean(post.media?.length || post.mediaUrl) && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <PostMediaGrid
+            media={post.media}
+            singleMediaUrl={post.mediaUrl}
+            className="mt-3"
           />
         </div>
       )}
 
       {/* 5. Апвоуты, даунвоуты, комментарии, репосты, поделиться */}
-      <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="mt-3 flex items-center gap-2 text-xs text-gray-400"
+      >
         {/* Vote controls */}
         <div
+          onClick={(e) => e.stopPropagation()}
           className={cn(
             "flex h-8 items-center rounded-full text-xs font-medium transition-colors",
             userVote === 1
@@ -132,7 +135,10 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
         >
           <button
             type="button"
-            onClick={(e) => handleVote(e, 1)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleVote(e, 1);
+            }}
             aria-label={t("post.upvote")}
             className={cn(
               "flex h-8 w-7 items-center justify-center rounded-l-full transition-colors",
@@ -157,7 +163,10 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
           </span>
           <button
             type="button"
-            onClick={(e) => handleVote(e, -1)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleVote(e, -1);
+            }}
             aria-label={t("post.downvote")}
             className={cn(
               "flex h-8 w-7 items-center justify-center rounded-r-full transition-colors",
@@ -190,7 +199,10 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
         {/* Repost button */}
         <button
           type="button"
-          onClick={handleRepost}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRepost(e);
+          }}
           aria-label={t("post.repost")}
           title={t("post.repost")}
           className="flex size-8 items-center justify-center rounded-full bg-gray-800 text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
@@ -201,7 +213,10 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
         {/* Share button */}
         <button
           type="button"
-          onClick={handleShare}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleShare(e);
+          }}
           aria-label={t("post.share")}
           title={t("post.share")}
           className={cn(

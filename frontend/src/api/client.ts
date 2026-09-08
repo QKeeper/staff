@@ -342,10 +342,28 @@ export const api = {
         method: "GET",
       });
     },
+    uploadMedia: async (files: File[]) => {
+      const formData = new FormData();
+      for (const file of files) {
+        formData.append("files", file);
+      }
+      return apiFetch<
+        {
+          url: string;
+          type: "image" | "video" | "gif";
+          name: string;
+          size: number;
+        }[]
+      >("/api/v1/posts/upload-media", {
+        method: "POST",
+        body: formData,
+      });
+    },
     create: async (data: {
       title: string;
       content?: string;
       mediaUrl?: string;
+      media?: { url: string; type: "image" | "video" | "gif" }[];
       communityId?: string;
       communityName?: string;
     }) => {
@@ -417,11 +435,21 @@ export interface PostCommunity {
   displayName: string | null;
 }
 
+export interface PostMedia {
+  id: string;
+  postId?: string;
+  url: string;
+  type: "image" | "video" | "gif";
+  order: number;
+  createdAt?: string;
+}
+
 export interface Post {
   id: string;
   title: string;
   content: string | null;
   mediaUrl: string | null;
+  media?: PostMedia[];
   authorId: string;
   communityId: string | null;
   upvotes: number;

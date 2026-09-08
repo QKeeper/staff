@@ -110,10 +110,25 @@ model Post {
   community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
   votes     PostVote[]
   comments  Comment[]
+  media     PostMedia[]
 
   @@index([communityId])
   @@index([authorId])
   @@map("posts")
+}
+
+model PostMedia {
+  id        String   @id @default(uuid())
+  postId    String
+  url       String
+  type      String   // 'image' | 'video' | 'gif'
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@map("post_media")
 }
 
 model PostVote {

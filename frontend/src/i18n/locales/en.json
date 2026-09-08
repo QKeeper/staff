@@ -150,13 +150,21 @@
     "titlePlaceholder": "Post title",
     "contentLabel": "Description",
     "contentPlaceholder": "Post text (optional)",
+    "attachMedia": "Attach media",
+    "mediaLimit": "Up to 10 files",
+    "uploadingMedia": "Uploading media...",
+    "removeMedia": "Remove media",
+    "mediaCount": "{{count}} of 10 media",
     "submitButton": "Post",
     "cancelButton": "Cancel",
     "submitting": "Posting...",
     "successNotification": "Post successfully published!",
     "loginRequired": "You need to log in to create a post",
     "errors": {
-      "serverError": "Failed to create post. Please try again."
+      "serverError": "Failed to create post. Please try again.",
+      "maxMediaLimit": "Maximum limit of 10 media files reached",
+      "maxMediaLimitExceeded": "You can attach at most 10 media files",
+      "uploadFailed": "Failed to upload media files. Please try again."
     },
     "preview": {
       "title": "Preview",
@@ -167,6 +175,21 @@
       "noDescription": "No description provided",
       "membersCount": "members"
     }
+  },
+  "media": {
+    "play": "Play",
+    "pause": "Pause",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "volume": "Volume",
+    "seek": "Seek",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "next": "Next media",
+    "prev": "Previous media",
+    "close": "Close",
+    "fileTooLarge": "File exceeds 50 MB",
+    "unsupportedType": "Unsupported file type"
   },
   "notFound": {
     "title": "404 Page not found"

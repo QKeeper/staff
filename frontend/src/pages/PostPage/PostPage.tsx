@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import { cn } from "@/utils/cn";
+import { PostContent } from "@/components/PostContent/PostContent";
+import { PostMediaGrid } from "@/components/PostMediaGrid/PostMediaGrid";
 
 function buildCommentTree(comments: Comment[]): CommentNode[] {
   const map = new Map<string, CommentNode>();
@@ -230,20 +232,18 @@ export const PostPage = () => {
 
         {/* Content text */}
         {post.content && (
-          <div className="text-base leading-relaxed whitespace-pre-line text-gray-200">
-            {post.content}
+          <div className="mt-2">
+            <PostContent content={post.content} size="base" />
           </div>
         )}
 
         {/* Media */}
-        {post.mediaUrl && (
-          <div className="overflow-hidden rounded-lg border border-gray-800 bg-black/40">
-            <img
-              src={post.mediaUrl}
-              alt={post.title}
-              className="max-h-[700px] w-auto max-w-full object-contain"
-            />
-          </div>
+        {Boolean(post.media?.length || post.mediaUrl) && (
+          <PostMediaGrid
+            media={post.media}
+            singleMediaUrl={post.mediaUrl}
+            className="mt-3"
+          />
         )}
 
         {/* Actions bar */}

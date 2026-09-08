@@ -20,13 +20,28 @@ export class PostService {
       }
     }
 
+    const mediaUrl =
+      input.mediaUrl ||
+      (input.media && input.media.length > 0 ? input.media[0].url : null);
+
     const post = await prisma.post.create({
       data: {
         title: input.title,
         content: input.content || null,
-        mediaUrl: input.mediaUrl || null,
+        mediaUrl,
         authorId: userId,
         communityId: communityId || null,
+        ...(input.media && input.media.length > 0
+          ? {
+              media: {
+                create: input.media.map((item, idx) => ({
+                  url: item.url,
+                  type: item.type,
+                  order: idx,
+                })),
+              },
+            }
+          : {}),
       },
       include: {
         author: {
@@ -43,6 +58,9 @@ export class PostService {
             name: true,
             displayName: true,
           },
+        },
+        media: {
+          orderBy: { order: "asc" },
         },
       },
     });
@@ -138,6 +156,9 @@ export class PostService {
               displayName: true,
             },
           },
+          media: {
+            orderBy: { order: "asc" },
+          },
           _count: {
             select: { comments: true },
           },
@@ -201,6 +222,9 @@ export class PostService {
             name: true,
             displayName: true,
           },
+        },
+        media: {
+          orderBy: { order: "asc" },
         },
         _count: {
           select: { comments: true },

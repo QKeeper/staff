@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const postMediaItemSchema = z.object({
+  url: z.string().min(1),
+  type: z.enum(["image", "video", "gif"]),
+});
+
 export const createPostSchema = z.object({
   title: z
     .string({ required_error: "Post title is required" })
@@ -7,6 +12,7 @@ export const createPostSchema = z.object({
     .max(300, "Post title cannot exceed 300 characters"),
   content: z.string().max(10000).optional().nullable(),
   mediaUrl: z.string().url().optional().nullable().or(z.literal("")),
+  media: z.array(postMediaItemSchema).max(10).optional(),
   communityId: z.string().uuid().optional().nullable(),
   communityName: z.string().optional().nullable(),
 });

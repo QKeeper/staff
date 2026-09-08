@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { PostService } from "./post.service.js";
 import { sendSuccess } from "../../common/responses/apiResponse.js";
+import { BadRequestError } from "../../common/errors/appError.js";
+import { getMediaType } from "../../common/middlewares/mediaUpload.js";
 import {
   ListPostsQuery,
   VotePostInput,
@@ -8,6 +10,26 @@ import {
 } from "./post.schemas.js";
 
 export class PostController {
+  static async uploadMedia(req: Request, res: Response): Promise<void> {
+    const files =
+      (req.files as Express.Multer.File[]) || (req.file ? [req.file] : []);
+    if (!files || files.length === 0) {
+      throw new BadRequestError("No files uploaded");
+    }
+
+    const uploaded = files.map((file) => {
+      const type = getMediaType(file.mimetype, file.filename);
+      return {
+        url: `/uploads/posts/${file.filename}`,
+        type,
+        name: file.originalname,
+        size: file.size,
+      };
+    });
+
+    sendSuccess(res, uploaded, undefined, 201);
+  }
+
   static async create(req: Request, res: Response): Promise<void> {
     const post = await PostService.createPost(req.user!.id, req.body);
     sendSuccess(res, post, undefined, 201);
