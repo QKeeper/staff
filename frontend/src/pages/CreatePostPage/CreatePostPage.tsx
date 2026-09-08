@@ -27,6 +27,10 @@ const CreatePostPage = () => {
   const [searchParams] = useSearchParams();
   const communityParam = searchParams.get("community");
 
+  // TODO: Максимально неочевидное поведение.
+  // Почему незалогиненого пользователь кидадает на главную страницу
+  // при нажатии на кнопку "Создать". Может его стоит кидать на авторизацию?
+
   // Redirect unauthenticated users
   useEffect(() => {
     if (!isAuthLoading && !user) {
