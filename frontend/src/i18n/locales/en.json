@@ -117,6 +117,9 @@
     "submitting": "Posting...",
     "successNotification": "Post successfully published!",
     "loginRequired": "You need to log in to create a post",
+    "errors": {
+      "serverError": "Failed to create post. Please try again."
+    },
     "preview": {
       "title": "Preview",
       "emptyTitle": "No destination selected",
@@ -134,7 +137,33 @@
     "title": "Community",
     "createPost": "Create post",
     "notFound": "Community not found",
-    "members": "members"
+    "members": "members",
+    "emptyPostsTitle": "No posts in this community yet",
+    "emptyPostsDescription": "Be the first to share an interesting thought, question, or story!",
+    "createFirstPost": "Create the first post"
+  },
+  "post": {
+    "upvote": "Upvote",
+    "downvote": "Downvote",
+    "repost": "Crosspost",
+    "share": "Share",
+    "linkCopied": "Link copied",
+    "anonymousAuthor": "Anonymous",
+    "timeAgo": {
+      "justNow": "just now",
+      "minutesAgo": "{{count}}m ago",
+      "hoursAgo": "{{count}}h ago",
+      "daysAgo": "{{count}}d ago"
+    }
+  },
+  "postPage": {
+    "back": "Back",
+    "notFound": "Post not found",
+    "commentsTitle": "Comments",
+    "addCommentPlaceholder": "Write a comment...",
+    "submitComment": "Comment",
+    "submittingComment": "Posting...",
+    "emptyComments": "No comments yet. Be the first to comment!"
   },
   "explore": {
     "title": "Explore"

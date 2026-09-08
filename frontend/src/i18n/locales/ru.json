@@ -117,6 +117,9 @@
     "submitting": "Публикация...",
     "successNotification": "Пост успешно создан!",
     "loginRequired": "Необходимо войти в систему для создания поста",
+    "errors": {
+      "serverError": "Не удалось создать пост. Попробуйте ещё раз."
+    },
     "preview": {
       "title": "Предпросмотр",
       "emptyTitle": "Место не выбрано",
@@ -134,7 +137,33 @@
     "title": "Сообщество",
     "createPost": "Создать пост",
     "notFound": "Сообщество не найдено",
-    "members": "участников"
+    "members": "участников",
+    "emptyPostsTitle": "В этом сообществе пока нет постов",
+    "emptyPostsDescription": "Будьте первым, кто поделится интересным контентом или вопросом!",
+    "createFirstPost": "Создать первый пост"
+  },
+  "post": {
+    "upvote": "Повысить рейтинг",
+    "downvote": "Понизить рейтинг",
+    "repost": "Репост",
+    "share": "Поделиться",
+    "linkCopied": "Ссылка скопирована",
+    "anonymousAuthor": "Аноним",
+    "timeAgo": {
+      "justNow": "только что",
+      "minutesAgo": "{{count}} мин. назад",
+      "hoursAgo": "{{count}} ч. назад",
+      "daysAgo": "{{count}} дн. назад"
+    }
+  },
+  "postPage": {
+    "back": "Назад",
+    "notFound": "Пост не найден",
+    "commentsTitle": "Комментарии",
+    "addCommentPlaceholder": "Напишите ваш комментарий...",
+    "submitComment": "Отправить",
+    "submittingComment": "Отправка...",
+    "emptyComments": "Здесь пока нет комментариев. Будьте первым!"
   },
   "explore": {
     "title": "Обзор"

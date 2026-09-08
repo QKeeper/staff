@@ -266,4 +266,107 @@ export const api = {
       return list;
     },
   },
+  posts: {
+    list: async (params?: {
+      communityName?: string;
+      communityId?: string;
+      sort?: "best" | "top" | "new";
+      page?: number;
+      limit?: number;
+    }) => {
+      const searchParams = new URLSearchParams();
+      if (params?.communityName)
+        searchParams.set("communityName", params.communityName);
+      if (params?.communityId)
+        searchParams.set("communityId", params.communityId);
+      if (params?.sort) searchParams.set("sort", params.sort);
+      if (params?.page) searchParams.set("page", String(params.page));
+      if (params?.limit) searchParams.set("limit", String(params.limit));
+
+      const qs = searchParams.toString();
+      return apiFetch<Post[]>(`/api/v1/posts${qs ? `?${qs}` : ""}`, {
+        method: "GET",
+      });
+    },
+    getById: async (id: string) => {
+      return apiFetch<Post>(`/api/v1/posts/${id}`, {
+        method: "GET",
+      });
+    },
+    create: async (data: {
+      title: string;
+      content?: string;
+      mediaUrl?: string;
+      communityId?: string;
+      communityName?: string;
+    }) => {
+      return apiFetch<Post>("/api/v1/posts", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    vote: async (id: string, value: number) => {
+      return apiFetch<{
+        postId: string;
+        upvotes: number;
+        downvotes: number;
+        score: number;
+        userVote: number;
+      }>(`/api/v1/posts/${id}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      });
+    },
+    listComments: async (postId: string) => {
+      return apiFetch<Comment[]>(`/api/v1/posts/${postId}/comments`, {
+        method: "GET",
+      });
+    },
+    createComment: async (postId: string, content: string) => {
+      return apiFetch<Comment>(`/api/v1/posts/${postId}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      });
+    },
+  },
 };
+
+export interface PostAuthor {
+  id: string;
+  username: string;
+  avatarUrl: string | null;
+}
+
+export interface PostCommunity {
+  id: string;
+  name: string;
+  displayName: string | null;
+}
+
+export interface Post {
+  id: string;
+  title: string;
+  content: string | null;
+  mediaUrl: string | null;
+  authorId: string;
+  communityId: string | null;
+  upvotes: number;
+  downvotes: number;
+  score: number;
+  userVote?: number;
+  commentsCount?: number;
+  createdAt: string;
+  updatedAt: string;
+  author: PostAuthor;
+  community?: PostCommunity | null;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  authorId: string;
+  postId: string;
+  createdAt: string;
+  updatedAt: string;
+  author: PostAuthor;
+}

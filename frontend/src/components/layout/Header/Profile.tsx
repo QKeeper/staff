@@ -3,13 +3,19 @@ import { Dropdown } from "@/components/ui/Dropdown";
 import { LogOutIcon, Settings2Icon, UserIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthModal } from "@/components/AuthModal";
 
 const Profile = () => {
   const { t } = useTranslation();
   const { user, logout, isLoading } = useAuth();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpen = () => setIsAuthOpen(true);
+    window.addEventListener("open-auth-modal", handleOpen);
+    return () => window.removeEventListener("open-auth-modal", handleOpen);
+  }, []);
 
   if (isLoading) {
     return <div className="size-8 animate-pulse rounded-full bg-gray-800" />;

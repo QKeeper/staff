@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { communityRoutes } from "./modules/communities/community.routes.js";
+import { postRoutes } from "./modules/posts/post.routes.js";
 import { errorHandler } from "./common/middlewares/errorHandler.js";
 import { NotFoundError } from "./common/errors/appError.js";
 import { sendSuccess } from "./common/responses/apiResponse.js";
@@ -24,10 +25,10 @@ export const createApp = (): Express => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Mock delay in development mode (1000ms)
+  // Mock delay in development mode (500ms)
   if (env.NODE_ENV === "development") {
     app.use((_req, _res, next) => {
-      setTimeout(next, 1000);
+      setTimeout(next, 500);
     });
   }
 
@@ -39,6 +40,7 @@ export const createApp = (): Express => {
   // API v1 Routes
   app.use("/api/v1/auth", authRoutes);
   app.use("/api/v1/communities", communityRoutes);
+  app.use("/api/v1/posts", postRoutes);
 
   // Catch 404 for undefined routes
   app.use((_req, _res, next) => {

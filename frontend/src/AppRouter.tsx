@@ -8,6 +8,7 @@ import { ExplorePage } from "@/pages/ExplorePage";
 import { SettingsPage } from "@/pages/SettingsPage";
 
 import { CreatePostPage } from "@/pages/CreatePostPage";
+import { PostPage, postLoader } from "@/pages/PostPage";
 
 const RootHydrateFallback = () => <AuthLoadingScreen isLoading={true} />;
 
@@ -43,6 +44,16 @@ const router = createBrowserRouter([
         path: "r/:communityName",
         element: <CommunityPage />,
         loader: communityLoader,
+      },
+      {
+        path: "r/:communityName/posts/:postId",
+        element: <PostPage />,
+        loader: postLoader,
+      },
+      {
+        path: "posts/:postId",
+        element: <PostPage />,
+        loader: postLoader,
       },
     ],
   },

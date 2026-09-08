@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import { useAuth } from "@/context/AuthContext";
-import { ArrowUpRight, CheckCircle2, User, Users } from "lucide-react";
+import { ArrowUpRight, User, Users } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
@@ -109,7 +109,8 @@ const CreatePostPage = () => {
   );
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Load user's communities
   useEffect(() => {
@@ -396,25 +397,37 @@ const CreatePostPage = () => {
 
   const canSubmit = Boolean(title.trim() && selectedDestination);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
-    setIsSubmitted(true);
-  };
+    if (!canSubmit || isSubmitting) return;
 
-  const handleReset = () => {
-    setTitle("");
-    setContent("");
-    setIsSubmitted(false);
-    if (user && !communityParam) {
-      setSelectedDestination({
-        type: "profile",
-        id: user.id,
-        name: user.username,
-        displayName: user.username,
-        description: user.bio || "",
-        avatarUrl: user.avatarUrl,
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const createdPost = await api.posts.create({
+        title: title.trim(),
+        content: content.trim() || undefined,
+        communityId:
+          selectedDestination?.type === "community"
+            ? selectedDestination.id
+            : undefined,
+        communityName:
+          selectedDestination?.type === "community"
+            ? selectedDestination.name
+            : undefined,
       });
+
+      if (createdPost.community?.name) {
+        navigate(`/r/${createdPost.community.name}/posts/${createdPost.id}`, {
+          replace: true,
+        });
+      } else {
+        navigate(`/posts/${createdPost.id}`, { replace: true });
+      }
+    } catch {
+      setSubmitError(t("createPost.errors.serverError"));
+      setIsSubmitting(false);
     }
   };
 
@@ -431,148 +444,128 @@ const CreatePostPage = () => {
           </h1>
         </div>
 
-        {isSubmitted ? (
-          <div className="rounded-md border border-emerald-900/60 bg-emerald-950/20 p-8 text-center backdrop-blur-sm">
-            <CheckCircle2 className="mx-auto mb-3 size-12 text-emerald-400" />
-            <h2 className="text-xl font-semibold text-gray-100">
-              {t("createPost.successNotification")}
-            </h2>
-            <p className="mt-2 text-sm text-gray-400">{title}</p>
-            <div className="mt-6 flex justify-center gap-3">
-              <Button variant="accent" size="medium" onClick={handleReset}>
-                {t("createPost.title")}
-              </Button>
-              <Button
-                variant="outline"
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          {/* Left Column: Form */}
+          <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
+            {submitError && (
+              <div className="rounded-md border border-red-800/60 bg-red-950/20 p-3 text-sm text-red-300">
+                {submitError}
+              </div>
+            )}
+
+            {/* 1. Destination Combobox */}
+            <div>
+              <Label htmlFor="post-destination">
+                {t("createPost.destinationLabel")}
+              </Label>
+              <Combobox<DestinationItem>
+                id="post-destination"
+                items={comboboxOptions}
+                value={selectedValue}
+                onValueChange={handleDestinationChange}
+                searchValue={searchValue}
+                onSearchChange={setSearchValue}
+                placeholder={t("createPost.destinationPlaceholder")}
+                searchPlaceholder={t("createPost.searchPlaceholder")}
+                emptyText={t("createPost.noCommunitiesFound")}
+                isLoading={isSearching}
+                width="full"
                 size="medium"
-                onClick={() =>
-                  selectedDestination?.type === "community"
-                    ? navigate(`/r/${selectedDestination.name}`)
-                    : navigate("/")
-                }
+              />
+            </div>
+
+            {/* 2. Title Input */}
+            <div>
+              <div className="flex items-center justify-between pb-1">
+                <Label htmlFor="post-title" className="pb-0">
+                  {t("createPost.titleLabel")}
+                </Label>
+                <span className="text-xs text-gray-500">
+                  {title.length}/300
+                </span>
+              </div>
+              <Input
+                id="post-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                maxLength={300}
+                placeholder={t("createPost.titlePlaceholder")}
+                className="bg-transparent"
+                required
+              />
+            </div>
+
+            {/* 3. Description / Content Textarea */}
+            <div>
+              <Label htmlFor="post-content">
+                {t("createPost.contentLabel")}
+              </Label>
+              <Textarea
+                id="post-content"
+                rows={8}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={t("createPost.contentPlaceholder")}
+                className="bg-transparent"
+              />
+            </div>
+
+            {/* 4. Footer with submit button */}
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                variant="accent"
+                size="medium"
+                disabled={!canSubmit || isSubmitting}
+                icon={<ArrowUpRight className="size-4" />}
               >
-                {selectedDestination?.type === "community"
-                  ? `r/${selectedDestination.name}`
-                  : t("sidebar.home")}
+                {isSubmitting
+                  ? t("createPost.submitting")
+                  : t("createPost.submitButton")}
               </Button>
             </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            {/* Left Column: Form */}
-            <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
-              {/* 1. Destination Combobox */}
-              <div>
-                <Label htmlFor="post-destination">
-                  {t("createPost.destinationLabel")}
-                </Label>
-                <Combobox<DestinationItem>
-                  id="post-destination"
-                  items={comboboxOptions}
-                  value={selectedValue}
-                  onValueChange={handleDestinationChange}
-                  searchValue={searchValue}
-                  onSearchChange={setSearchValue}
-                  placeholder={t("createPost.destinationPlaceholder")}
-                  searchPlaceholder={t("createPost.searchPlaceholder")}
-                  emptyText={t("createPost.noCommunitiesFound")}
-                  isLoading={isSearching}
-                  width="full"
-                  size="medium"
-                />
-              </div>
+          </form>
 
-              {/* 2. Title Input */}
-              <div>
-                <div className="flex items-center justify-between pb-1">
-                  <Label htmlFor="post-title" className="pb-0">
-                    {t("createPost.titleLabel")}
-                  </Label>
-                  <span className="text-xs text-gray-500">
-                    {title.length}/300
-                  </span>
-                </div>
-                <Input
-                  id="post-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  maxLength={300}
-                  placeholder={t("createPost.titlePlaceholder")}
-                  className="bg-transparent"
-                  required
-                />
-              </div>
-
-              {/* 3. Description / Content Textarea */}
-              <div>
-                <Label htmlFor="post-content">
-                  {t("createPost.contentLabel")}
-                </Label>
-                <Textarea
-                  id="post-content"
-                  rows={8}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder={t("createPost.contentPlaceholder")}
-                  className="bg-transparent"
-                />
-              </div>
-
-              {/* 4. Footer with submit button */}
-              <div className="flex justify-end pt-2">
-                <Button
-                  type="submit"
-                  variant="accent"
-                  size="medium"
-                  disabled={!canSubmit}
-                  icon={<ArrowUpRight className="size-4" />}
-                >
-                  {t("createPost.submitButton")}
-                </Button>
-              </div>
-            </form>
-
-            {/* Right Column: Community / Profile Card */}
-            <div className="lg:col-span-1">
-              {selectedDestination && (
-                <div className="sticky top-4 rounded-md border border-gray-800 bg-gray-900/60 p-5 backdrop-blur-sm">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      {selectedDestination.avatarUrl ? (
-                        <img
-                          src={selectedDestination.avatarUrl}
-                          alt={selectedDestination.name}
-                          className="size-11 shrink-0 rounded-full border border-gray-700 object-cover"
-                        />
-                      ) : (
-                        <div className="flex size-11 shrink-0 items-center justify-center rounded-full border border-gray-700 bg-gray-800 text-gray-300">
-                          {selectedDestination.type === "community" ? (
-                            <Users className="size-5 text-blue-400" />
-                          ) : (
-                            <User className="size-5 text-emerald-400" />
-                          )}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <h4 className="truncate font-semibold text-gray-100">
-                          {selectedDestination.type === "community"
-                            ? `r/${selectedDestination.displayName || selectedDestination.name}`
-                            : `u/${selectedDestination.name}`}
-                        </h4>
+          {/* Right Column: Community / Profile Card */}
+          <div className="lg:col-span-1">
+            {selectedDestination && (
+              <div className="sticky top-4 rounded-md border border-gray-800 bg-gray-900/60 p-5 backdrop-blur-sm">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    {selectedDestination.avatarUrl ? (
+                      <img
+                        src={selectedDestination.avatarUrl}
+                        alt={selectedDestination.name}
+                        className="size-11 shrink-0 rounded-full border border-gray-700 object-cover"
+                      />
+                    ) : (
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-full border border-gray-700 bg-gray-800 text-gray-300">
+                        {selectedDestination.type === "community" ? (
+                          <Users className="size-5 text-blue-400" />
+                        ) : (
+                          <User className="size-5 text-emerald-400" />
+                        )}
                       </div>
-                    </div>
-
-                    {selectedDestination.description && (
-                      <p className="text-sm leading-relaxed text-gray-300">
-                        {selectedDestination.description}
-                      </p>
                     )}
+                    <div className="min-w-0">
+                      <h4 className="truncate font-semibold text-gray-100">
+                        {selectedDestination.type === "community"
+                          ? `r/${selectedDestination.displayName || selectedDestination.name}`
+                          : `u/${selectedDestination.name}`}
+                      </h4>
+                    </div>
                   </div>
+
+                  {selectedDestination.description && (
+                    <p className="text-sm leading-relaxed text-gray-300">
+                      {selectedDestination.description}
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

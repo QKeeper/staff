@@ -33,6 +33,9 @@ model User {
   sessions           Session[]
   createdCommunities Community[]       @relation("CommunityCreator")
   memberships        CommunityMember[]
+  posts              Post[]
+  postVotes          PostVote[]
+  comments           Comment[]
 
   @@map("users")
 }
@@ -66,6 +69,7 @@ model Community {
 
   creator User              @relation("CommunityCreator", fields: [creatorId], references: [id])
   members CommunityMember[]
+  posts   Post[]
 
   @@map("communities")
 }
@@ -86,3 +90,59 @@ model CommunityMember {
   @@index([communityId])
   @@map("community_members")
 }
+
+model Post {
+  id          String   @id @default(uuid())
+  title       String
+  content     String?
+  mediaUrl    String?
+  authorId    String
+  communityId String?
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  votes     PostVote[]
+  comments  Comment[]
+
+  @@index([communityId])
+  @@index([authorId])
+  @@map("posts")
+}
+
+model PostVote {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  value     Int // 1 for upvote, -1 for downvote
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
+  @@map("post_votes")
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  authorId  String
+  postId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+  @@map("comments")
+}
+
