@@ -1,6 +1,7 @@
 import { CookieOptions, Request, Response } from "express";
 import { AuthService } from "./auth.service.js";
 import { sendSuccess } from "../../common/responses/apiResponse.js";
+import { BadRequestError } from "../../common/errors/appError.js";
 import { env } from "../../config/env.js";
 
 const isProd = env.NODE_ENV === "production";
@@ -92,6 +93,24 @@ export class AuthController {
     const rawUsername = req.params.username;
     const username = Array.isArray(rawUsername) ? rawUsername[0] : rawUsername;
     const user = await AuthService.getUserProfile(username);
+    sendSuccess(res, { user });
+  }
+
+  static async updateAvatar(req: Request, res: Response): Promise<void> {
+    const { image } = req.body;
+    if (!image || typeof image !== "string") {
+      throw new BadRequestError("image string is required");
+    }
+    const user = await AuthService.updateAvatar(req.user!.id, image);
+    sendSuccess(res, { user });
+  }
+
+  static async updateBanner(req: Request, res: Response): Promise<void> {
+    const { image } = req.body;
+    if (!image || typeof image !== "string") {
+      throw new BadRequestError("image string is required");
+    }
+    const user = await AuthService.updateBanner(req.user!.id, image);
     sendSuccess(res, { user });
   }
 }

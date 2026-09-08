@@ -55,7 +55,22 @@
     "postMany": "posts",
     "commentOne": "comment",
     "commentFew": "comments",
-    "commentMany": "comments"
+    "commentMany": "comments",
+    "about": "About User",
+    "changeAvatar": "Change avatar",
+    "changeBanner": "Change banner",
+    "fileTooLarge": "File is too large (maximum 10 MB)",
+    "uploadError": "Failed to update image",
+    "registration": "Registration",
+    "publications": "Publications",
+    "userComments": "Comments",
+    "cropBannerTitle": "Edit Banner",
+    "cropBannerSubtitle": "Drag to position and use slider to zoom",
+    "cropAvatarTitle": "Edit Avatar",
+    "cropAvatarSubtitle": "Drag to position and use slider to zoom",
+    "zoom": "Zoom",
+    "apply": "Apply",
+    "cancel": "Cancel"
   },
   "sidebar": {
     "home": "Home",

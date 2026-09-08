@@ -1,9 +1,12 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env.js";
 import { prisma } from "../../db/prisma.js";
 import {
+  BadRequestError,
   ConflictError,
   NotFoundError,
   UnauthorizedError,
@@ -78,6 +81,7 @@ export class AuthService {
         displayName: true,
         globalRole: true,
         avatarUrl: true,
+        bannerUrl: true,
         bio: true,
         createdAt: true,
       },
@@ -159,6 +163,7 @@ export class AuthService {
         displayName: user.displayName,
         globalRole: user.globalRole,
         avatarUrl: user.avatarUrl,
+        bannerUrl: user.bannerUrl,
         bio: user.bio,
         createdAt: user.createdAt,
       },
@@ -236,6 +241,7 @@ export class AuthService {
         displayName: true,
         globalRole: true,
         avatarUrl: true,
+        bannerUrl: true,
         bio: true,
         createdAt: true,
         _count: {
@@ -269,6 +275,7 @@ export class AuthService {
         username: true,
         displayName: true,
         avatarUrl: true,
+        bannerUrl: true,
         bio: true,
         createdAt: true,
         _count: {
@@ -284,6 +291,84 @@ export class AuthService {
       throw new NotFoundError("User not found");
     }
 
+    return user;
+  }
+
+  private static async saveImage(
+    userId: string,
+    subfolder: "avatars" | "banners",
+    imageData: string,
+  ): Promise<string> {
+    if (imageData.startsWith("http://") || imageData.startsWith("https://")) {
+      return imageData;
+    }
+
+    const match = imageData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+    if (!match) {
+      if (imageData.startsWith("/uploads/")) {
+        return imageData;
+      }
+      throw new BadRequestError("Invalid image data format");
+    }
+
+    let ext = match[1].toLowerCase();
+    if (ext === "jpeg") ext = "jpg";
+    if (ext === "svg+xml") ext = "svg";
+
+    const base64Content = match[2];
+    const buffer = Buffer.from(base64Content, "base64");
+
+    if (buffer.length > 10 * 1024 * 1024) {
+      throw new BadRequestError("Image size must not exceed 10MB");
+    }
+
+    const dir = path.resolve(process.cwd(), "uploads", subfolder);
+    await fs.mkdir(dir, { recursive: true });
+
+    const fileName = `${userId}-${Date.now()}.${ext}`;
+    const filePath = path.join(dir, fileName);
+    await fs.writeFile(filePath, buffer);
+
+    return `/uploads/${subfolder}/${fileName}`;
+  }
+
+  static async updateAvatar(userId: string, imageData: string) {
+    const avatarUrl = await this.saveImage(userId, "avatars", imageData);
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        displayName: true,
+        globalRole: true,
+        avatarUrl: true,
+        bannerUrl: true,
+        bio: true,
+        createdAt: true,
+      },
+    });
+    return user;
+  }
+
+  static async updateBanner(userId: string, imageData: string) {
+    const bannerUrl = await this.saveImage(userId, "banners", imageData);
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { bannerUrl },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        displayName: true,
+        globalRole: true,
+        avatarUrl: true,
+        bannerUrl: true,
+        bio: true,
+        createdAt: true,
+      },
+    });
     return user;
   }
 }

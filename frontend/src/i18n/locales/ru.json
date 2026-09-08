@@ -55,7 +55,22 @@
     "postMany": "постов",
     "commentOne": "комментарий",
     "commentFew": "комментария",
-    "commentMany": "комментариев"
+    "commentMany": "комментариев",
+    "about": "О пользователе",
+    "changeAvatar": "Сменить аватар",
+    "changeBanner": "Сменить баннер",
+    "fileTooLarge": "Файл слишком большой (максимум 10 МБ)",
+    "uploadError": "Не удалось обновить изображение",
+    "registration": "Регистрация",
+    "publications": "Публикации",
+    "userComments": "Комментарии",
+    "cropBannerTitle": "Настройка баннера",
+    "cropBannerSubtitle": "Перетаскивайте изображение и используйте масштаб для выбора области",
+    "cropAvatarTitle": "Настройка аватара",
+    "cropAvatarSubtitle": "Перетаскивайте изображение и используйте масштаб для выбора области",
+    "zoom": "Масштаб",
+    "apply": "Применить",
+    "cancel": "Отмена"
   },
   "sidebar": {
     "home": "Главная",

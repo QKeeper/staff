@@ -125,6 +125,7 @@ export interface User {
   email: string;
   globalRole: "USER" | "ADMIN";
   avatarUrl?: string | null;
+  bannerUrl?: string | null;
   bio?: string | null;
   createdAt: string;
   _count?: {
@@ -140,6 +141,7 @@ export interface UserProfile {
   username: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  bannerUrl?: string | null;
   bio?: string | null;
   createdAt: string;
   _count: {
@@ -294,6 +296,18 @@ export const api = {
           method: "GET",
         },
       );
+    },
+    updateAvatar: async (image: string) => {
+      return apiFetch<{ user: User }>(`/api/v1/auth/me/avatar`, {
+        method: "PATCH",
+        body: JSON.stringify({ image }),
+      });
+    },
+    updateBanner: async (image: string) => {
+      return apiFetch<{ user: User }>(`/api/v1/auth/me/banner`, {
+        method: "PATCH",
+        body: JSON.stringify({ image }),
+      });
     },
   },
   posts: {

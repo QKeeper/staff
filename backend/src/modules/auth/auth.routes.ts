@@ -27,6 +27,8 @@ router.post(
 );
 router.post("/logout", AuthController.logout);
 router.get("/me", requireAuth, AuthController.me);
+router.patch("/me/avatar", requireAuth, AuthController.updateAvatar);
+router.patch("/me/banner", requireAuth, AuthController.updateBanner);
 router.get("/users/:username", AuthController.getUserProfile);
 
 export { router as authRoutes };

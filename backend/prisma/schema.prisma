@@ -26,6 +26,7 @@ model User {
   passwordHash String
   globalRole   GlobalRole  @default(USER)
   avatarUrl    String?
+  bannerUrl    String?
   bio          String?
   displayName  String?
   createdAt    DateTime    @default(now())
