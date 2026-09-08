@@ -6,6 +6,15 @@
   @apply bg-gray-950 text-gray-50;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
+.custom-scrollbar,
+textarea {
+  scrollbar-gutter: stable;
+}
+
 button {
   @apply cursor-pointer;
 }

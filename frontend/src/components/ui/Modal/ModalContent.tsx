@@ -92,7 +92,7 @@ const ModalContent = ({
           onPointerDown={handleBackdropPointerDown}
           style={backdropStyle}
           className={cn(
-            "fixed inset-0 z-50 flex h-screen w-screen justify-center overflow-y-auto bg-gray-950/50 p-4",
+            "custom-scrollbar fixed inset-0 z-50 flex justify-center overflow-y-auto bg-gray-950/50 p-4",
             resolvedPosition === "top" ? "items-start pt-20" : "items-center",
           )}
         >
