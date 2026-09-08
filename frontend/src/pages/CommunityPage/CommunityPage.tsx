@@ -138,10 +138,7 @@ const CommunityPage = () => {
         {isLoadingPosts ? (
           <div className="space-y-4 py-6">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="animate-pulse space-y-3 border-b border-gray-800/60 px-2 py-4"
-              >
+              <div key={i} className="animate-pulse space-y-3 rounded-xl p-4">
                 <div className="flex items-center gap-2">
                   <div className="size-5 rounded-full bg-gray-800" />
                   <div className="h-3 w-28 rounded bg-gray-800" />
@@ -179,7 +176,7 @@ const CommunityPage = () => {
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-800/80">
+          <div className="space-y-2">
             {posts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}

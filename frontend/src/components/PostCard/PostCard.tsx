@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   ArrowBigUp,
   ArrowBigDown,
@@ -43,7 +43,17 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
     ? `/r/${post.community.name}/posts/${post.id}`
     : `/posts/${post.id}`;
 
-  const handleNavigateToPost = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // If the click originated from an interactive button or media, ignore
+    const target = e.target as HTMLElement | null;
+    if (target?.closest("button, video, audio")) {
+      return;
+    }
+    // If the user is selecting text, do not navigate
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+      return;
+    }
     navigate(postPath);
   };
 
@@ -66,8 +76,8 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
   return (
     <article
       id={`post-${post.id}`}
-      onClick={handleNavigateToPost}
-      className="cursor-pointer border-b border-gray-800/80 bg-transparent px-2 py-4 transition-colors hover:bg-white/[0.02]"
+      onClick={handleCardClick}
+      className="cursor-pointer rounded-xl bg-transparent p-4 transition-colors hover:bg-gray-900/75"
     >
       {/* 1. Имя пользователя, относительное время публикации */}
       <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -93,9 +103,16 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
         </time>
       </div>
 
-      {/* 2. Заголовок поста (без подсветки при ховере) */}
+      {/* 2. Заголовок поста (растянут по всей ширине для клика и колёсика) */}
       <div className="mt-2">
-        <h2 className="text-lg font-semibold text-gray-100">{post.title}</h2>
+        <h2 className="text-lg font-semibold text-gray-100">
+          <Link
+            to={postPath}
+            className="block w-full text-inherit hover:text-inherit"
+          >
+            {post.title}
+          </Link>
+        </h2>
       </div>
 
       {/* 3. Описание */}
@@ -117,13 +134,9 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
       )}
 
       {/* 5. Апвоуты, даунвоуты, комментарии, репосты, поделиться */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="mt-3 flex items-center gap-2 text-xs text-gray-400"
-      >
+      <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
         {/* Vote controls */}
         <div
-          onClick={(e) => e.stopPropagation()}
           className={cn(
             "flex h-8 items-center rounded-full text-xs font-medium transition-colors",
             userVote === 1
@@ -182,19 +195,16 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
         </div>
 
         {/* Comments button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`${postPath}#comments`);
-          }}
+        <Link
+          to={`${postPath}#comments`}
+          onClick={(e) => e.stopPropagation()}
           aria-label={t("postPage.commentsTitle")}
           title={t("postPage.commentsTitle")}
           className="flex h-8 items-center gap-1.5 rounded-full bg-gray-800 px-3 font-medium text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
         >
           <MessageSquare className="size-4" />
           <span>{post.commentsCount ?? 0}</span>
-        </button>
+        </Link>
 
         {/* Repost button */}
         <button

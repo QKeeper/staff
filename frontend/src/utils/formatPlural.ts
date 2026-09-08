@@ -1,5 +1,21 @@
 import type { TFunction } from "i18next";
 
+export function formatRegistrationDate(
+  createdAt: string,
+  lang: string,
+): string {
+  const date = new Date(createdAt);
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+  const locale = lang.startsWith("ru") ? "ru-RU" : "en-US";
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
 export function formatDaysOnStaff(
   createdAt: string,
   t: TFunction,

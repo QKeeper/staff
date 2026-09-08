@@ -63,7 +63,7 @@ export const UserCommentCard = ({
     <article
       id={`comment-${comment.id}`}
       onClick={handleNavigateToPost}
-      className="cursor-pointer border-b border-gray-800/80 bg-transparent px-2 py-4 transition-colors hover:bg-white/[0.02]"
+      className="cursor-pointer rounded-xl bg-transparent p-4 transition-colors hover:bg-gray-900/75"
     >
       {/* 1. Название сообщества и заголовок поста */}
       <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
@@ -121,7 +121,6 @@ export const UserCommentCard = ({
       <div className="mt-3 flex items-center gap-2 text-xs font-medium text-gray-300">
         {/* Апвоуты */}
         <div
-          onClick={(e) => e.stopPropagation()}
           className={cn(
             "flex h-7 items-center rounded-full transition-colors",
             userVote === 1

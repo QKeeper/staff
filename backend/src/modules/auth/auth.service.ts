@@ -291,7 +291,26 @@ export class AuthService {
       throw new NotFoundError("User not found");
     }
 
-    return user;
+    const [postAgg, commentAgg] = await Promise.all([
+      prisma.post.aggregate({
+        where: { authorId: user.id },
+        _sum: { upvotes: true, downvotes: true },
+      }),
+      prisma.comment.aggregate({
+        where: { authorId: user.id },
+        _sum: { upvotes: true, downvotes: true },
+      }),
+    ]);
+    const karma =
+      (postAgg._sum.upvotes || 0) -
+      (postAgg._sum.downvotes || 0) +
+      (commentAgg._sum.upvotes || 0) -
+      (commentAgg._sum.downvotes || 0);
+
+    return {
+      ...user,
+      karma,
+    };
   }
 
   private static async saveImage(

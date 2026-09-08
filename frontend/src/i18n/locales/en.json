@@ -62,6 +62,7 @@
     "fileTooLarge": "File is too large (maximum 10 MB)",
     "uploadError": "Failed to update image",
     "registration": "Registration",
+    "karma": "Karma",
     "publications": "Publications",
     "userComments": "Comments",
     "cropBannerTitle": "Edit Banner",

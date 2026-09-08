@@ -144,6 +144,7 @@ export interface UserProfile {
   bannerUrl?: string | null;
   bio?: string | null;
   createdAt: string;
+  karma?: number;
   _count: {
     posts: number;
     comments: number;

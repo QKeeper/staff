@@ -31,7 +31,7 @@ import { PostCard } from "@/components/PostCard";
 import { UserCommentCard } from "@/components/UserCommentCard";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { Button } from "@/components/ui/Button";
-import { formatDaysOnStaff } from "@/utils/formatPlural";
+import { formatRegistrationDate } from "@/utils/formatPlural";
 import { cn } from "@/utils/cn";
 
 export interface ProfileLoaderData {
@@ -276,6 +276,21 @@ const ProfilePage = () => {
     );
   }, [displayPosts, displayComments]);
 
+  const karma = useMemo(() => {
+    if (typeof profileUser?.karma === "number") {
+      return profileUser.karma;
+    }
+    const postsKarma = posts.reduce(
+      (sum, p) => sum + (p.score ?? p.upvotes - p.downvotes),
+      0,
+    );
+    const commentsKarma = comments.reduce(
+      (sum, c) => sum + (c.score ?? c.upvotes - c.downvotes),
+      0,
+    );
+    return postsKarma + commentsKarma;
+  }, [profileUser?.karma, posts, comments]);
+
   if (!profileUser) {
     return (
       <div className="flex-1 py-16 text-center">
@@ -438,56 +453,44 @@ const ProfilePage = () => {
               type="button"
               onClick={() => setActiveTab("overview")}
               className={cn(
-                "flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors",
+                "border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
                 activeTab === "overview"
                   ? "border-blue-500 text-blue-400"
                   : "border-transparent text-gray-400 hover:text-gray-200",
               )}
             >
-              <Sparkles className="size-4" />
-              <span>{t("profile.overview")}</span>
-              <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
-                {activities.length}
-              </span>
+              {t("profile.overview")}
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("posts")}
               className={cn(
-                "flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors",
+                "border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
                 activeTab === "posts"
                   ? "border-blue-500 text-blue-400"
                   : "border-transparent text-gray-400 hover:text-gray-200",
               )}
             >
-              <FileText className="size-4" />
-              <span>{t("profile.posts")}</span>
-              <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
-                {posts.length}
-              </span>
+              {t("profile.posts")}
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("comments")}
               className={cn(
-                "flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors",
+                "border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
                 activeTab === "comments"
                   ? "border-blue-500 text-blue-400"
                   : "border-transparent text-gray-400 hover:text-gray-200",
               )}
             >
-              <MessageSquare className="size-4" />
-              <span>{t("profile.comments")}</span>
-              <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
-                {comments.length}
-              </span>
+              {t("profile.comments")}
             </button>
           </div>
 
           {/* Контент активной вкладки */}
-          <div>
+          <div className="pt-2">
             {activeTab === "overview" &&
               (activities.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-800/80 p-12 text-center">
@@ -502,7 +505,7 @@ const ProfilePage = () => {
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-800/80">
+                <div className="space-y-2">
                   {activities.map((item) =>
                     item.type === "post" ? (
                       <PostCard key={item.id} post={item.post} />
@@ -527,7 +530,7 @@ const ProfilePage = () => {
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-800/80">
+                <div className="space-y-2">
                   {displayPosts.map((post) => (
                     <PostCard key={post.id} post={post} />
                   ))}
@@ -548,7 +551,7 @@ const ProfilePage = () => {
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-800/80">
+                <div className="space-y-2">
                   {displayComments.map((comment) => (
                     <UserCommentCard key={comment.id} comment={comment} />
                   ))}
@@ -627,9 +630,27 @@ const ProfilePage = () => {
 
             {/* Чистая статистика в 2 столбика */}
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+              {/* Первая строка: Карма, Дата регистрации */}
+              <div>
+                <div className="text-lg font-bold text-gray-100">{karma}</div>
+                <div className="text-xs text-gray-400">
+                  {t("profile.karma")}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-sm leading-7 font-medium text-gray-200">
+                  {formatRegistrationDate(profileUser.createdAt, i18n.language)}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {t("profile.registration")}
+                </div>
+              </div>
+
+              {/* Вторая строка: Публикации, Комментарии */}
               <div>
                 <div className="text-lg font-bold text-gray-100">
-                  {posts.length}
+                  {profileUser._count?.posts ?? posts.length}
                 </div>
                 <div className="text-xs text-gray-400">
                   {t("profile.publications")}
@@ -638,19 +659,10 @@ const ProfilePage = () => {
 
               <div>
                 <div className="text-lg font-bold text-gray-100">
-                  {comments.length}
+                  {profileUser._count?.comments ?? comments.length}
                 </div>
                 <div className="text-xs text-gray-400">
                   {t("profile.userComments")}
-                </div>
-              </div>
-
-              <div className="col-span-2">
-                <div className="text-sm font-medium text-gray-200">
-                  {formatDaysOnStaff(profileUser.createdAt, t, i18n.language)}
-                </div>
-                <div className="text-xs text-gray-400">
-                  {t("profile.registration")}
                 </div>
               </div>
             </div>
