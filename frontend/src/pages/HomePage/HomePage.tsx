@@ -1,9 +1,27 @@
+import { api, type MyCommunity } from "@/api/client";
 import { Select, type SelectItem } from "@/components/ui/Select";
+import { getAuthUser } from "@/context/AuthContext";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLoaderData } from "react-router";
+
+export interface HomeLoaderData {
+  myCommunities: MyCommunity[];
+}
+
+export const homeLoader = async (): Promise<HomeLoaderData> => {
+  const user = await getAuthUser();
+  if (!user) {
+    return { myCommunities: [] };
+  }
+  const myCommunities = await api.communities.getMyCommunities();
+  return { myCommunities };
+};
 
 const HomePage = () => {
+  const { myCommunities } = useLoaderData<HomeLoaderData>();
   const { t } = useTranslation();
+  void myCommunities;
 
   const sortItems: SelectItem[] = [
     { label: t("feed.sort.best"), value: "best" },

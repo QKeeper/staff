@@ -1,6 +1,19 @@
 import { Outlet, useNavigation } from "react-router";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { api, type MyCommunity, type User } from "@/api/client";
+import { getAuthUser } from "@/context/AuthContext";
+
+export interface LayoutLoaderData {
+  user: User | null;
+  communities: MyCommunity[];
+}
+
+export const layoutLoader = async (): Promise<LayoutLoaderData> => {
+  const user = await getAuthUser();
+  const communities = user ? await api.communities.getMyCommunities() : [];
+  return { user, communities };
+};
 
 function AppLayout() {
   const navigation = useNavigation();

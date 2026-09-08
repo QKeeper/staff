@@ -5,8 +5,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, type User } from "@/api/client";
-import { AuthLoadingScreen } from "@/components/layout/AuthLoadingScreen";
+import {
+  api,
+  type User,
+  communityCacheUtils,
+  myCommunitiesCacheUtils,
+} from "@/api/client";
 
 interface AuthContextType {
   user: User | null;
@@ -59,20 +63,14 @@ export async function getAuthUser(forceRefresh = false): Promise<User | null> {
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => getCachedUser());
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
-      try {
-        const u = await initAuth();
-        if (isMounted) setUser(u);
-      } finally {
-        if (isMounted) setIsInitialLoading(false);
-      }
-    })();
+    initAuth().then((u) => {
+      if (isMounted) setUser(u);
+    });
 
     return () => {
       isMounted = false;
@@ -97,6 +95,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const res = await api.auth.login(data);
     cachedUser = res.user;
     setUser(res.user);
+    // Refresh user's communities upon login
+    api.communities.getMyCommunities(true).catch(() => []);
   };
 
   const register = async (data: {
@@ -107,6 +107,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const res = await api.auth.register(data);
     cachedUser = res.user;
     setUser(res.user);
+    // Refresh user's communities upon register
+    api.communities.getMyCommunities(true).catch(() => []);
   };
 
   const logout = async () => {
@@ -115,6 +117,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       cachedUser = null;
       setUser(null);
+      myCommunitiesCacheUtils.clear();
+      communityCacheUtils.clear();
     }
   };
 
@@ -122,15 +126,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
-        isLoading: isInitialLoading || isLoading,
+        isLoading,
         login,
         register,
         logout,
         refreshUser,
       }}
     >
-      {!isInitialLoading && children}
-      <AuthLoadingScreen isLoading={isInitialLoading} />
+      {children}
     </AuthContext.Provider>
   );
 };

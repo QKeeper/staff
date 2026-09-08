@@ -51,6 +51,7 @@ const CommunityPage = () => {
 
         <Link
           to={`/submit?community=${encodeURIComponent(communityName || "")}`}
+          state={{ community }}
           className="shrink-0"
         >
           <Button

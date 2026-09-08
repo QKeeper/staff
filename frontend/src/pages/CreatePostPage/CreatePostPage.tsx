@@ -1,4 +1,10 @@
-import { api, type Community, type MyCommunity } from "@/api/client";
+import {
+  api,
+  communityCacheUtils,
+  myCommunitiesCacheUtils,
+  type Community,
+  type MyCommunity,
+} from "@/api/client";
 import { Button } from "@/components/ui/Button";
 import { Combobox, type ComboboxOption } from "@/components/ui/Combobox";
 import { Input } from "@/components/ui/Input";
@@ -8,7 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ArrowUpRight, CheckCircle2, User, Users } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 interface DestinationItem {
   type: "profile" | "community";
@@ -24,6 +30,7 @@ const CreatePostPage = () => {
   const { t } = useTranslation();
   const { user, isLoading: isAuthLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const communityParam = searchParams.get("community");
 
@@ -38,10 +45,36 @@ const CreatePostPage = () => {
     }
   }, [user, isAuthLoading, navigate]);
 
+  const stateCommunity = (location.state as { community?: Community } | null)
+    ?.community;
+
+  // Resolve synchronously if available in route state or memory cache
+  const initialCommunity = useMemo(() => {
+    if (!communityParam) return null;
+    if (
+      stateCommunity &&
+      (stateCommunity.name.toLowerCase() === communityParam.toLowerCase() ||
+        stateCommunity.id === communityParam)
+    ) {
+      return stateCommunity;
+    }
+    return communityCacheUtils.get(communityParam) || null;
+  }, [communityParam, stateCommunity]);
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedDestination, setSelectedDestination] =
     useState<DestinationItem | null>(() => {
+      if (initialCommunity) {
+        return {
+          type: "community",
+          id: initialCommunity.id,
+          name: initialCommunity.name,
+          displayName: initialCommunity.displayName,
+          description: initialCommunity.description,
+          topic: initialCommunity.topic,
+        };
+      }
       if (user && !communityParam) {
         return {
           type: "profile",
@@ -71,7 +104,9 @@ const CreatePostPage = () => {
     });
   }, [user, communityParam]);
 
-  const [myCommunities, setMyCommunities] = useState<MyCommunity[]>([]);
+  const [myCommunities, setMyCommunities] = useState<MyCommunity[]>(
+    () => myCommunitiesCacheUtils.get() || [],
+  );
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -82,6 +117,11 @@ const CreatePostPage = () => {
       setMyCommunities([]);
       return;
     }
+
+    if (myCommunitiesCacheUtils.get()) {
+      setMyCommunities(myCommunitiesCacheUtils.get() || []);
+    }
+
     let isMounted = true;
     api.communities
       .getMyCommunities()
@@ -100,6 +140,16 @@ const CreatePostPage = () => {
   // Handle URL prefill via ?community=name
   useEffect(() => {
     if (!communityParam) return;
+
+    // If already preloaded synchronously or matches current destination, skip request
+    if (
+      selectedDestination?.type === "community" &&
+      (selectedDestination.name.toLowerCase() ===
+        communityParam.toLowerCase() ||
+        selectedDestination.id === communityParam)
+    ) {
+      return;
+    }
 
     let isMounted = true;
     api.communities
@@ -123,7 +173,7 @@ const CreatePostPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [communityParam]);
+  }, [communityParam, selectedDestination]);
 
   const defaultOptions = useMemo((): ComboboxOption<DestinationItem>[] => {
     const options: ComboboxOption<DestinationItem>[] = [];

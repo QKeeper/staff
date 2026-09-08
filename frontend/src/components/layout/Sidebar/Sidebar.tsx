@@ -4,7 +4,7 @@ import { NavLink, type NavLinkProps } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
-import { api, type MyCommunity } from "@/api/client";
+import { api, myCommunitiesCacheUtils, type MyCommunity } from "@/api/client";
 
 const baseStyle =
   "inline-block w-full rounded-sm px-2 py-1 whitespace-nowrap hover:bg-gray-900 transition-colors";
@@ -35,15 +35,17 @@ const Link = ({ className, ...props }: NavLinkProps) => {
 const Sidebar = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [communities, setCommunities] = useState<MyCommunity[]>([]);
+  const [communities, setCommunities] = useState<MyCommunity[]>(
+    () => myCommunitiesCacheUtils.get() || [],
+  );
 
-  const fetchCommunities = async () => {
+  const fetchCommunities = async (force = false) => {
     if (!user) {
       setCommunities([]);
       return;
     }
     try {
-      const data = await api.communities.getMyCommunities();
+      const data = await api.communities.getMyCommunities(force);
       setCommunities(data);
     } catch {
       // Ignore background fetch error
@@ -51,10 +53,19 @@ const Sidebar = () => {
   };
 
   useEffect(() => {
-    fetchCommunities();
+    if (!user) {
+      setCommunities([]);
+      return;
+    }
+
+    if (!myCommunitiesCacheUtils.get()) {
+      fetchCommunities();
+    } else {
+      setCommunities(myCommunitiesCacheUtils.get() || []);
+    }
 
     const handleCreated = () => {
-      fetchCommunities();
+      fetchCommunities(true);
     };
 
     window.addEventListener("community-created", handleCreated);

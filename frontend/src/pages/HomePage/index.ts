@@ -1,1 +1,1 @@
-export { HomePage } from "./HomePage";
+export { HomePage, homeLoader, type HomeLoaderData } from "./HomePage";

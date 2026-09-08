@@ -156,6 +156,35 @@ export interface MyCommunity {
   joinedAt: string;
 }
 
+const communityCache = new Map<string, Community>();
+
+let cachedMyCommunities: MyCommunity[] | null = null;
+
+export const myCommunitiesCacheUtils = {
+  get: (): MyCommunity[] | null => cachedMyCommunities,
+  set: (communities: MyCommunity[]): void => {
+    cachedMyCommunities = communities;
+  },
+  clear: (): void => {
+    cachedMyCommunities = null;
+  },
+};
+
+export const communityCacheUtils = {
+  get: (nameOrId: string): Community | undefined => {
+    return (
+      communityCache.get(nameOrId.toLowerCase()) || communityCache.get(nameOrId)
+    );
+  },
+  set: (community: Community): void => {
+    communityCache.set(community.name.toLowerCase(), community);
+    communityCache.set(community.id, community);
+  },
+  clear: (): void => {
+    communityCache.clear();
+  },
+};
+
 export const api = {
   auth: {
     register: (data: { username: string; email: string; password: string }) =>
@@ -178,27 +207,43 @@ export const api = {
       }),
   },
   communities: {
-    create: (data: {
+    create: async (data: {
       name: string;
       displayName?: string;
       description: string;
       topic: string;
       isPrivate?: boolean;
       rulesAgreement: boolean;
-    }) =>
-      apiFetch<Community>("/api/v1/communities", {
+    }) => {
+      const comm = await apiFetch<Community>("/api/v1/communities", {
         method: "POST",
         body: JSON.stringify(data),
-      }),
-    getByName: (name: string) =>
-      apiFetch<Community>(`/api/v1/communities/${name}`, {
+      });
+      communityCacheUtils.set(comm);
+      return comm;
+    },
+    getByName: async (name: string, bypassCache = false) => {
+      if (!bypassCache) {
+        const cached = communityCacheUtils.get(name);
+        if (cached) return cached;
+      }
+      const comm = await apiFetch<Community>(`/api/v1/communities/${name}`, {
         method: "GET",
-      }),
-    getMyCommunities: () =>
-      apiFetch<MyCommunity[]>("/api/v1/communities/my", {
+      });
+      communityCacheUtils.set(comm);
+      return comm;
+    },
+    getMyCommunities: async (bypassCache = false) => {
+      if (!bypassCache && cachedMyCommunities !== null) {
+        return cachedMyCommunities;
+      }
+      const list = await apiFetch<MyCommunity[]>("/api/v1/communities/my", {
         method: "GET",
-      }),
-    list: (params?: {
+      });
+      myCommunitiesCacheUtils.set(list);
+      return list;
+    },
+    list: async (params?: {
       page?: number;
       limit?: number;
       topic?: string;
@@ -211,9 +256,14 @@ export const api = {
       if (params?.search) searchParams.set("search", params.search);
 
       const qs = searchParams.toString();
-      return apiFetch<Community[]>(`/api/v1/communities${qs ? `?${qs}` : ""}`, {
-        method: "GET",
-      });
+      const list = await apiFetch<Community[]>(
+        `/api/v1/communities${qs ? `?${qs}` : ""}`,
+        {
+          method: "GET",
+        },
+      );
+      list.forEach((comm) => communityCacheUtils.set(comm));
+      return list;
     },
   },
 };
