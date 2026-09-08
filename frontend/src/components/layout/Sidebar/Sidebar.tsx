@@ -75,7 +75,7 @@ const Sidebar = () => {
   }, [user]);
 
   return (
-    <div className="w-52 shrink-0">
+    <aside className="sticky top-[41px] max-h-[calc(100vh-41px)] w-52 shrink-0 self-start overflow-y-auto pb-4">
       <ul>
         <Link to="/">{t("sidebar.home")}</Link>
         <Link to="/explore">{t("sidebar.explore")}</Link>
@@ -97,7 +97,7 @@ const Sidebar = () => {
           </>
         )}
       </ul>
-    </div>
+    </aside>
   );
 };
 
