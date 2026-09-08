@@ -81,7 +81,9 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
           )}
         </div>
         <span className="font-medium text-gray-300">
-          u/{post.author.username || t("post.anonymousAuthor")}
+          {post.author.displayName ||
+            post.author.username ||
+            t("post.anonymousAuthor")}
         </span>
         <span className="text-gray-600">•</span>
         <time className="text-gray-500" dateTime={post.createdAt}>

@@ -4,6 +4,7 @@ import {
   createPostSchema,
   listPostsQuerySchema,
   votePostSchema,
+  voteCommentSchema,
   createCommentSchema,
 } from "./post.schemas.js";
 import { validateRequest } from "../../common/middlewares/validateRequest.js";
@@ -28,6 +29,12 @@ router.get(
   PostController.list,
 );
 
+router.get(
+  "/user/:username/comments",
+  optionalAuth,
+  PostController.listUserComments,
+);
+
 router.get("/:id", optionalAuth, PostController.getById);
 
 router.post(
@@ -44,6 +51,13 @@ router.post(
   requireAuth,
   validateRequest({ body: createCommentSchema }),
   PostController.createComment,
+);
+
+router.post(
+  "/comments/:id/vote",
+  requireAuth,
+  validateRequest({ body: voteCommentSchema }),
+  PostController.voteComment,
 );
 
 export { router as postRoutes };

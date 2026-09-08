@@ -87,4 +87,11 @@ export class AuthController {
     const user = await AuthService.getMe(req.user!.id);
     sendSuccess(res, { user });
   }
+
+  static async getUserProfile(req: Request, res: Response): Promise<void> {
+    const rawUsername = req.params.username;
+    const username = Array.isArray(rawUsername) ? rawUsername[0] : rawUsername;
+    const user = await AuthService.getUserProfile(username);
+    sendSuccess(res, { user });
+  }
 }

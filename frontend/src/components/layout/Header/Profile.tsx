@@ -38,7 +38,10 @@ const Profile = () => {
   }
 
   const MyProfileItem = () => (
-    <Dropdown.Link to="/profile" icon={<UserIcon className="size-4" />}>
+    <Dropdown.Link
+      to={`/u/${user.username}`}
+      icon={<UserIcon className="size-4" />}
+    >
       <span>{t("header.profile")}</span>
     </Dropdown.Link>
   );

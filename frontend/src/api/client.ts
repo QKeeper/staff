@@ -121,11 +121,31 @@ async function apiFetch<T>(
 export interface User {
   id: string;
   username: string;
+  displayName?: string | null;
   email: string;
   globalRole: "USER" | "ADMIN";
   avatarUrl?: string | null;
   bio?: string | null;
   createdAt: string;
+  _count?: {
+    createdCommunities?: number;
+    memberships?: number;
+    posts?: number;
+    comments?: number;
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  createdAt: string;
+  _count: {
+    posts: number;
+    comments: number;
+  };
 }
 
 export interface Community {
@@ -266,10 +286,22 @@ export const api = {
       return list;
     },
   },
+  users: {
+    getByUsername: async (username: string) => {
+      return apiFetch<{ user: UserProfile }>(
+        `/api/v1/auth/users/${encodeURIComponent(username)}`,
+        {
+          method: "GET",
+        },
+      );
+    },
+  },
   posts: {
     list: async (params?: {
       communityName?: string;
       communityId?: string;
+      authorUsername?: string;
+      authorId?: string;
       sort?: "best" | "top" | "new";
       page?: number;
       limit?: number;
@@ -279,6 +311,9 @@ export const api = {
         searchParams.set("communityName", params.communityName);
       if (params?.communityId)
         searchParams.set("communityId", params.communityId);
+      if (params?.authorUsername)
+        searchParams.set("authorUsername", params.authorUsername);
+      if (params?.authorId) searchParams.set("authorId", params.authorId);
       if (params?.sort) searchParams.set("sort", params.sort);
       if (params?.page) searchParams.set("page", String(params.page));
       if (params?.limit) searchParams.set("limit", String(params.limit));
@@ -322,10 +357,34 @@ export const api = {
         method: "GET",
       });
     },
-    createComment: async (postId: string, content: string) => {
+    listUserComments: async (username: string) => {
+      return apiFetch<UserComment[]>(
+        `/api/v1/posts/user/${encodeURIComponent(username)}/comments`,
+        {
+          method: "GET",
+        },
+      );
+    },
+    voteComment: async (id: string, value: number) => {
+      return apiFetch<{
+        commentId: string;
+        upvotes: number;
+        downvotes: number;
+        score: number;
+        userVote: number;
+      }>(`/api/v1/posts/comments/${id}/vote`, {
+        method: "POST",
+        body: JSON.stringify({ value }),
+      });
+    },
+    createComment: async (
+      postId: string,
+      content: string,
+      parentId?: string | null,
+    ) => {
       return apiFetch<Comment>(`/api/v1/posts/${postId}/comments`, {
         method: "POST",
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, parentId }),
       });
     },
   },
@@ -334,6 +393,7 @@ export const api = {
 export interface PostAuthor {
   id: string;
   username: string;
+  displayName?: string | null;
   avatarUrl: string | null;
 }
 
@@ -366,7 +426,35 @@ export interface Comment {
   content: string;
   authorId: string;
   postId: string;
+  parentId?: string | null;
+  upvotes: number;
+  downvotes: number;
+  score: number;
+  userVote?: number;
   createdAt: string;
   updatedAt: string;
   author: PostAuthor;
+}
+
+export interface UserComment {
+  id: string;
+  content: string;
+  authorId: string;
+  postId: string;
+  parentId?: string | null;
+  upvotes: number;
+  downvotes: number;
+  score: number;
+  userVote?: number;
+  createdAt: string;
+  updatedAt: string;
+  author: PostAuthor;
+  post: {
+    id: string;
+    title: string;
+    community?: {
+      name: string;
+      displayName?: string | null;
+    } | null;
+  };
 }

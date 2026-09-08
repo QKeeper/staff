@@ -32,7 +32,30 @@
     "switchToLogin": "Already have an account? Log In"
   },
   "profile": {
-    "title": "Profile"
+    "title": "Profile",
+    "overview": "Overview",
+    "posts": "Posts",
+    "comments": "Comments",
+    "commented": "commented",
+    "reply": "Reply",
+    "userNotFound": "User not found",
+    "emptyOverviewTitle": "No activity yet",
+    "emptyOverviewDescription": "This user hasn't posted or commented yet.",
+    "emptyPostsTitle": "No posts published",
+    "emptyPostsDescription": "This user hasn't created any posts yet.",
+    "emptyCommentsTitle": "No comments",
+    "emptyCommentsDescription": "This user hasn't left any comments yet.",
+    "onStaff": "On Staff for {{days}}",
+    "onStaffZero": "On Staff for less than a day",
+    "dayOne": "day",
+    "dayFew": "days",
+    "dayMany": "days",
+    "postOne": "post",
+    "postFew": "posts",
+    "postMany": "posts",
+    "commentOne": "comment",
+    "commentFew": "comments",
+    "commentMany": "comments"
   },
   "sidebar": {
     "home": "Home",
@@ -163,7 +186,12 @@
     "addCommentPlaceholder": "Write a comment...",
     "submitComment": "Comment",
     "submittingComment": "Posting...",
-    "emptyComments": "No comments yet. Be the first to comment!"
+    "emptyComments": "No comments yet. Be the first to comment!",
+    "reply": "Reply",
+    "cancelReply": "Cancel",
+    "replyPlaceholder": "Write a reply...",
+    "showReplies": "Show replies ({{count}})",
+    "hideReplies": "Hide replies"
   },
   "explore": {
     "title": "Explore"

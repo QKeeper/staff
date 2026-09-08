@@ -75,6 +75,7 @@ export class AuthService {
         id: true,
         username: true,
         email: true,
+        displayName: true,
         globalRole: true,
         avatarUrl: true,
         bio: true,
@@ -155,6 +156,7 @@ export class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
+        displayName: user.displayName,
         globalRole: user.globalRole,
         avatarUrl: user.avatarUrl,
         bio: user.bio,
@@ -231,6 +233,7 @@ export class AuthService {
         id: true,
         username: true,
         email: true,
+        displayName: true,
         globalRole: true,
         avatarUrl: true,
         bio: true,
@@ -239,6 +242,39 @@ export class AuthService {
           select: {
             createdCommunities: true,
             memberships: true,
+            posts: true,
+            comments: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    return user;
+  }
+
+  static async getUserProfile(username: string) {
+    const user = await prisma.user.findFirst({
+      where: {
+        username: {
+          equals: username,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+        bio: true,
+        createdAt: true,
+        _count: {
+          select: {
+            posts: true,
+            comments: true,
           },
         },
       },

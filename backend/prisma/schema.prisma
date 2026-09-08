@@ -27,6 +27,7 @@ model User {
   globalRole   GlobalRole  @default(USER)
   avatarUrl    String?
   bio          String?
+  displayName  String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -36,6 +37,7 @@ model User {
   posts              Post[]
   postVotes          PostVote[]
   comments           Comment[]
+  commentVotes       CommentVote[]
 
   @@map("users")
 }
@@ -131,18 +133,42 @@ model PostVote {
 }
 
 model Comment {
-  id        String   @id @default(uuid())
+  id        String        @id @default(uuid())
   content   String
   authorId  String
   postId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  parentId  String?
+  upvotes   Int           @default(0)
+  downvotes Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post    Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[]     @relation("CommentReplies")
+  votes   CommentVote[]
 
   @@index([postId])
   @@index([authorId])
+  @@index([parentId])
   @@map("comments")
+}
+
+model CommentVote {
+  id        String   @id @default(uuid())
+  userId    String
+  commentId String
+  value     Int // 1 for upvote, -1 for downvote
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+  @@index([userId])
+  @@map("comment_votes")
 }
 

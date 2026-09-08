@@ -32,7 +32,30 @@
     "switchToLogin": "Уже есть аккаунт? Войти"
   },
   "profile": {
-    "title": "Профиль"
+    "title": "Профиль",
+    "overview": "Обзор",
+    "posts": "Посты",
+    "comments": "Комментарии",
+    "commented": "прокомментировал(а)",
+    "reply": "Ответить",
+    "userNotFound": "Пользователь не найден",
+    "emptyOverviewTitle": "Активности пока нет",
+    "emptyOverviewDescription": "Этот пользователь пока ничего не публиковал и не комментировал.",
+    "emptyPostsTitle": "Нет опубликованных постов",
+    "emptyPostsDescription": "Пользователь пока не создал ни одного поста.",
+    "emptyCommentsTitle": "Нет комментариев",
+    "emptyCommentsDescription": "Пользователь пока не оставил ни одного комментария.",
+    "onStaff": "На Стаффе {{days}}",
+    "onStaffZero": "На Стаффе меньше дня",
+    "dayOne": "день",
+    "dayFew": "дня",
+    "dayMany": "дней",
+    "postOne": "пост",
+    "postFew": "поста",
+    "postMany": "постов",
+    "commentOne": "комментарий",
+    "commentFew": "комментария",
+    "commentMany": "комментариев"
   },
   "sidebar": {
     "home": "Главная",
@@ -163,7 +186,12 @@
     "addCommentPlaceholder": "Напишите ваш комментарий...",
     "submitComment": "Отправить",
     "submittingComment": "Отправка...",
-    "emptyComments": "Здесь пока нет комментариев. Будьте первым!"
+    "emptyComments": "Здесь пока нет комментариев. Будьте первым!",
+    "reply": "Ответить",
+    "cancelReply": "Отмена",
+    "replyPlaceholder": "Напишите ответ...",
+    "showReplies": "Показать ответы ({{count}})",
+    "hideReplies": "Скрыть ответы"
   },
   "explore": {
     "title": "Обзор"

@@ -27,5 +27,6 @@ router.post(
 );
 router.post("/logout", AuthController.logout);
 router.get("/me", requireAuth, AuthController.me);
+router.get("/users/:username", AuthController.getUserProfile);
 
 export { router as authRoutes };

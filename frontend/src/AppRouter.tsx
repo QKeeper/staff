@@ -1,16 +1,25 @@
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, redirect, RouterProvider } from "react-router";
 import { AppLayout, layoutLoader } from "./AppLayout";
 import { AuthLoadingScreen } from "@/components/layout/AuthLoadingScreen";
 import { HomePage, homeLoader } from "@/pages/HomePage";
-import { ProfilePage } from "@/pages/ProfilePage";
+import { ProfilePage, profileLoader } from "@/pages/ProfilePage";
 import { CommunityPage, communityLoader } from "@/pages/CommunityPage";
 import { ExplorePage } from "@/pages/ExplorePage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { getAuthUser } from "@/context/AuthContext";
 
 import { CreatePostPage } from "@/pages/CreatePostPage";
 import { PostPage, postLoader } from "@/pages/PostPage";
 
 const RootHydrateFallback = () => <AuthLoadingScreen isLoading={true} />;
+
+const profileRedirectLoader = async () => {
+  const user = await getAuthUser();
+  if (user?.username) {
+    return redirect(`/u/${user.username}`);
+  }
+  return redirect("/");
+};
 
 const router = createBrowserRouter([
   {
@@ -26,7 +35,17 @@ const router = createBrowserRouter([
       },
       {
         path: "profile",
+        loader: profileRedirectLoader,
+      },
+      {
+        path: "u/:username",
         element: <ProfilePage />,
+        loader: profileLoader,
+      },
+      {
+        path: "user/:username",
+        element: <ProfilePage />,
+        loader: profileLoader,
       },
       {
         path: "explore",

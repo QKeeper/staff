@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import { PostService } from "./post.service.js";
 import { sendSuccess } from "../../common/responses/apiResponse.js";
-import { ListPostsQuery, VotePostInput } from "./post.schemas.js";
+import {
+  ListPostsQuery,
+  VotePostInput,
+  VoteCommentInput,
+} from "./post.schemas.js";
 
 export class PostController {
   static async create(req: Request, res: Response): Promise<void> {
@@ -33,11 +37,15 @@ export class PostController {
   static async createComment(req: Request, res: Response): Promise<void> {
     const rawId = req.params.id;
     const postId = Array.isArray(rawId) ? rawId[0] : rawId;
-    const { content } = req.body as { content: string };
+    const { content, parentId } = req.body as {
+      content: string;
+      parentId?: string | null;
+    };
     const comment = await PostService.createComment(
       req.user!.id,
       postId,
       content,
+      parentId,
     );
     sendSuccess(res, comment, undefined, 201);
   }
@@ -45,7 +53,26 @@ export class PostController {
   static async listComments(req: Request, res: Response): Promise<void> {
     const rawId = req.params.id;
     const postId = Array.isArray(rawId) ? rawId[0] : rawId;
-    const comments = await PostService.listComments(postId);
+    const comments = await PostService.listComments(postId, req.user?.id);
     sendSuccess(res, comments);
+  }
+
+  static async listUserComments(req: Request, res: Response): Promise<void> {
+    const rawUsername = req.params.username;
+    const username = Array.isArray(rawUsername) ? rawUsername[0] : rawUsername;
+    const comments = await PostService.listUserComments(username, req.user?.id);
+    sendSuccess(res, comments);
+  }
+
+  static async voteComment(req: Request, res: Response): Promise<void> {
+    const rawId = req.params.id;
+    const commentId = Array.isArray(rawId) ? rawId[0] : rawId;
+    const { value } = req.body as VoteCommentInput;
+    const result = await PostService.voteComment(
+      req.user!.id,
+      commentId,
+      value,
+    );
+    sendSuccess(res, result);
   }
 }

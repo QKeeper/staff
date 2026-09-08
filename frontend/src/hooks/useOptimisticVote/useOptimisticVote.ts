@@ -3,22 +3,26 @@ import { api } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 
 export interface UseOptimisticVoteProps {
-  postId: string;
+  postId?: string;
+  itemId?: string;
   initialScore: number;
   initialUserVote: number;
-  onVoteChange?: (
-    postId: string,
-    newScore: number,
-    newUserVote: number,
-  ) => void;
+  onVoteChange?: (id: string, newScore: number, newUserVote: number) => void;
+  voteFn?: (
+    id: string,
+    value: number,
+  ) => Promise<{ score: number; userVote: number }>;
 }
 
 export const useOptimisticVote = ({
   postId,
+  itemId,
   initialScore,
   initialUserVote,
   onVoteChange,
+  voteFn,
 }: UseOptimisticVoteProps) => {
+  const targetId = (itemId || postId) as string;
   const { user } = useAuth();
   const [score, setScore] = useState(initialScore);
   const [userVote, setUserVote] = useState(initialUserVote);
@@ -36,11 +40,11 @@ export const useOptimisticVote = ({
   const requestIdRef = useRef(0);
   const timerRef = useRef<number | null>(null);
 
-  // Track post ID to reset state only when viewing a different post
-  const lastPostIdRef = useRef(postId);
+  // Track target ID to reset state only when viewing a different item
+  const lastTargetIdRef = useRef(targetId);
   useEffect(() => {
-    if (lastPostIdRef.current !== postId) {
-      lastPostIdRef.current = postId;
+    if (lastTargetIdRef.current !== targetId) {
+      lastTargetIdRef.current = targetId;
       setScore(initialScore);
       setUserVote(initialUserVote);
       serverStateRef.current = {
@@ -49,7 +53,7 @@ export const useOptimisticVote = ({
       };
       targetVoteRef.current = initialUserVote;
     }
-  }, [postId, initialScore, initialUserVote]);
+  }, [targetId, initialScore, initialUserVote]);
 
   // Clean up timer on unmount
   useEffect(() => {
@@ -93,7 +97,9 @@ export const useOptimisticVote = ({
       const currentReqId = ++requestIdRef.current;
 
       try {
-        const res = await api.posts.vote(postId, voteToSend);
+        const res = voteFn
+          ? await voteFn(targetId, voteToSend)
+          : await api.posts.vote(targetId, voteToSend);
 
         // If a newer vote action was triggered while this request was in-flight, ignore response
         if (currentReqId !== requestIdRef.current) {
@@ -109,7 +115,7 @@ export const useOptimisticVote = ({
         if (targetVoteRef.current === voteToSend) {
           setScore(res.score);
           setUserVote(res.userVote);
-          onVoteChange?.(postId, res.score, res.userVote);
+          onVoteChange?.(targetId, res.score, res.userVote);
         }
       } catch {
         // Ignore errors from outdated requests
@@ -122,7 +128,7 @@ export const useOptimisticVote = ({
         setUserVote(serverStateRef.current.userVote);
         setScore(serverStateRef.current.score);
         onVoteChange?.(
-          postId,
+          targetId,
           serverStateRef.current.score,
           serverStateRef.current.userVote,
         );

@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Link,
   useLoaderData,
   useNavigate,
+  useSearchParams,
   type LoaderFunctionArgs,
 } from "react-router";
 import {
@@ -18,10 +19,31 @@ import {
 import { api, type Comment, type Post } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import { useOptimisticVote } from "@/hooks/useOptimisticVote";
+import { CommentItem, type CommentNode } from "@/components/CommentItem";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import { cn } from "@/utils/cn";
+
+function buildCommentTree(comments: Comment[]): CommentNode[] {
+  const map = new Map<string, CommentNode>();
+  comments.forEach((c) => {
+    map.set(c.id, { ...c, children: [] });
+  });
+
+  const roots: CommentNode[] = [];
+
+  comments.forEach((c) => {
+    const node = map.get(c.id)!;
+    if (c.parentId && map.has(c.parentId)) {
+      map.get(c.parentId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+
+  return roots;
+}
 
 export interface PostLoaderData {
   post: Post | null;
@@ -53,6 +75,8 @@ export const PostPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const targetCommentId = searchParams.get("commentId");
 
   const [post, setPost] = useState<Post | null>(initialPost);
   const [comments, setComments] = useState<Comment[]>(initialComments);
@@ -74,15 +98,43 @@ export const PostPage = () => {
     setComments(initialComments);
   }, [initialPost, initialComments]);
 
+  const commentTree = useMemo(() => {
+    const roots = buildCommentTree(comments);
+    if (!targetCommentId) return roots;
+
+    function containsTarget(node: CommentNode): boolean {
+      if (node.id === targetCommentId) return true;
+      return node.children.some(containsTarget);
+    }
+
+    const targetRootIndex = roots.findIndex(containsTarget);
+    if (targetRootIndex > 0) {
+      const targetRoot = roots[targetRootIndex];
+      const otherRoots = roots.filter((_, idx) => idx !== targetRootIndex);
+      return [targetRoot, ...otherRoots];
+    }
+    return roots;
+  }, [comments, targetCommentId]);
+
+  const handleReplyCreated = (newReply: Comment) => {
+    setComments((prev) => [...prev, newReply]);
+  };
+
   useEffect(() => {
-    if (window.location.hash === "#comments") {
+    if (targetCommentId) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`comment-${targetCommentId}`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
+      return () => clearTimeout(timer);
+    } else if (window.location.hash === "#comments") {
       const timer = setTimeout(() => {
         const el = document.getElementById("comments");
         el?.scrollIntoView({ behavior: "smooth" });
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [targetCommentId]);
 
   if (!post) {
     return (
@@ -164,7 +216,9 @@ export const PostPage = () => {
             )}
           </div>
           <span className="font-medium text-gray-300">
-            u/{post.author.username || t("post.anonymousAuthor")}
+            {post.author.displayName ||
+              post.author.username ||
+              t("post.anonymousAuthor")}
           </span>
           <span className="text-gray-600">•</span>
           <time className="text-gray-500" dateTime={post.createdAt}>
@@ -331,33 +385,24 @@ export const PostPage = () => {
             {t("postPage.emptyComments")}
           </div>
         ) : (
-          <div className="space-y-4 divide-y divide-gray-800/60">
-            {comments.map((comment) => (
-              <div key={comment.id} className="pt-4 first:pt-0">
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gray-800 text-gray-300">
-                    {comment.author.avatarUrl ? (
-                      <img
-                        src={comment.author.avatarUrl}
-                        alt={comment.author.username}
-                        className="size-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <UserIcon className="size-3 text-gray-400" />
-                    )}
-                  </div>
-                  <span className="font-medium text-gray-300">
-                    u/{comment.author.username || t("post.anonymousAuthor")}
-                  </span>
-                  <span className="text-gray-600">•</span>
-                  <time className="text-gray-500" dateTime={comment.createdAt}>
-                    {formatTimeAgo(comment.createdAt, t)}
-                  </time>
-                </div>
-                <div className="mt-2 text-sm leading-relaxed whitespace-pre-line text-gray-200">
-                  {comment.content}
-                </div>
-              </div>
+          <div className="space-y-2">
+            {commentTree.map((rootComment) => (
+              <CommentItem
+                key={rootComment.id}
+                comment={rootComment}
+                postId={post.id}
+                targetCommentId={targetCommentId}
+                onReplyCreated={handleReplyCreated}
+                onVoteChange={(commentId, newScore, newUserVote) => {
+                  setComments((prev) =>
+                    prev.map((c) =>
+                      c.id === commentId
+                        ? { ...c, score: newScore, userVote: newUserVote }
+                        : c,
+                    ),
+                  );
+                }}
+              />
             ))}
           </div>
         )}
