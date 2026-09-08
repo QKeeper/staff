@@ -29,13 +29,18 @@ export const communityLoader = async ({
 
   await Promise.all([
     store.dispatch(
-      communitiesApiSlice.endpoints.getCommunityByName.initiate(communityName),
+      communitiesApiSlice.endpoints.getCommunityByName.initiate(communityName, {
+        forceRefetch: true,
+      }),
     ),
     store.dispatch(
-      postsApiSlice.endpoints.getPosts.initiate({
-        communityName,
-        sort: "best",
-      }),
+      postsApiSlice.endpoints.getPosts.initiate(
+        {
+          communityName,
+          sort: "best",
+        },
+        { forceRefetch: true },
+      ),
     ),
   ]);
 

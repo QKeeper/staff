@@ -15,6 +15,8 @@ import { ArrowUpRight, Loader2, Paperclip, User, Users, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
+import { store } from "@/app/store";
+import { postsApiSlice } from "@/features/posts/postsApiSlice";
 
 interface AttachedMediaItem {
   id: string;
@@ -486,6 +488,13 @@ const CreatePostPage = () => {
             ? selectedDestination.name
             : undefined,
       });
+
+      store.dispatch(
+        postsApiSlice.util.invalidateTags([
+          { type: "Post", id: "LIST" },
+          "Community",
+        ]),
+      );
 
       if (createdPost.community?.name) {
         navigate(`/r/${createdPost.community.name}/posts/${createdPost.id}`, {
