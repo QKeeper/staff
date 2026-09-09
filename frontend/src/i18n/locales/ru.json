@@ -200,6 +200,10 @@
     "createPost": "Создать пост",
     "notFound": "Сообщество не найдено",
     "members": "участников",
+    "membersCount": "Участники",
+    "publications": "Публикации",
+    "created": "Создано",
+    "about": "О сообществе",
     "emptyPostsTitle": "В этом сообществе пока нет постов",
     "emptyPostsDescription": "Будьте первым, кто поделится интересным контентом или вопросом!",
     "createFirstPost": "Создать первый пост"

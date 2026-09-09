@@ -362,7 +362,7 @@ const ProfilePage = () => {
         <div
           onClick={handleBannerClick}
           className={cn(
-            "relative aspect-[3/1] w-full overflow-hidden rounded-2xl border border-gray-800 bg-gradient-to-r from-blue-950/40 via-gray-900 to-indigo-950/40",
+            "relative aspect-[3/1] w-full overflow-hidden rounded-2xl border border-gray-800 bg-gray-900",
             isOwnProfile && "group cursor-pointer",
           )}
         >
@@ -373,7 +373,7 @@ const ProfilePage = () => {
               className="size-full object-cover"
             />
           ) : (
-            <div className="flex size-full items-center justify-center bg-gray-900/60" />
+            <div className="size-full bg-gray-900" />
           )}
 
           {isOwnProfile && (
@@ -578,7 +578,7 @@ const ProfilePage = () => {
                     <div
                       onClick={isOwnProfile ? handleBannerClick : undefined}
                       className={cn(
-                        "aspect-[3/1] w-full overflow-hidden rounded-xl border border-gray-800/80 bg-gradient-to-r from-blue-950/40 via-gray-900 to-indigo-950/40",
+                        "aspect-[3/1] w-full overflow-hidden rounded-xl border border-gray-800/80 bg-gray-900",
                         isOwnProfile && "cursor-pointer",
                       )}
                     >
@@ -589,7 +589,7 @@ const ProfilePage = () => {
                           className="size-full object-cover"
                         />
                       ) : (
-                        <div className="size-full bg-gray-900/60" />
+                        <div className="size-full bg-gray-900" />
                       )}
                     </div>
 

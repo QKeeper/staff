@@ -200,6 +200,10 @@
     "createPost": "Create post",
     "notFound": "Community not found",
     "members": "members",
+    "membersCount": "Members",
+    "publications": "Posts",
+    "created": "Created",
+    "about": "About community",
     "emptyPostsTitle": "No posts in this community yet",
     "emptyPostsDescription": "Be the first to share an interesting thought, question, or story!",
     "createFirstPost": "Create the first post"
