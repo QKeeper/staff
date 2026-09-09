@@ -16,6 +16,7 @@ import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import { cn } from "@/utils/cn";
 import { PostMediaGrid } from "../PostMediaGrid/PostMediaGrid";
 import { PostContent } from "../PostContent/PostContent";
+import { Hint } from "@/components/ui/Hint";
 
 export interface PostCardProps {
   post: Post;
@@ -195,53 +196,56 @@ export const PostCard = ({ post, onVoteChange }: PostCardProps) => {
         </div>
 
         {/* Comments button */}
-        <Link
-          to={`${postPath}#comments`}
-          onClick={(e) => e.stopPropagation()}
-          aria-label={t("postPage.commentsTitle")}
-          title={t("postPage.commentsTitle")}
-          className="flex h-8 items-center gap-1.5 rounded-full bg-gray-800 px-3 font-medium text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
-        >
-          <MessageSquare className="size-4" />
-          <span>{post.commentsCount ?? 0}</span>
-        </Link>
+        <Hint content={t("postPage.commentsTitle")}>
+          <Link
+            to={`${postPath}#comments`}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={t("postPage.commentsTitle")}
+            className="flex h-8 items-center gap-1.5 rounded-full bg-gray-800 px-3 font-medium text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
+          >
+            <MessageSquare className="size-4" />
+            <span>{post.commentsCount ?? 0}</span>
+          </Link>
+        </Hint>
 
         {/* Repost button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleRepost(e);
-          }}
-          aria-label={t("post.repost")}
-          title={t("post.repost")}
-          className="flex size-8 items-center justify-center rounded-full bg-gray-800 text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
-        >
-          <Repeat2 className="size-4" />
-        </button>
+        <Hint content={t("post.repost")}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRepost(e);
+            }}
+            aria-label={t("post.repost")}
+            className="flex size-8 items-center justify-center rounded-full bg-gray-800 text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
+          >
+            <Repeat2 className="size-4" />
+          </button>
+        </Hint>
 
         {/* Share button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleShare(e);
-          }}
-          aria-label={t("post.share")}
-          title={t("post.share")}
-          className={cn(
-            "flex size-8 items-center justify-center rounded-full transition-colors",
-            isCopied
-              ? "bg-emerald-500/20 text-emerald-400"
-              : "bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white",
-          )}
-        >
-          {isCopied ? (
-            <Check className="size-4" />
-          ) : (
-            <Share2 className="size-4" />
-          )}
-        </button>
+        <Hint content={isCopied ? t("post.linkCopied") : t("post.share")}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare(e);
+            }}
+            aria-label={t("post.share")}
+            className={cn(
+              "flex size-8 items-center justify-center rounded-full transition-colors",
+              isCopied
+                ? "bg-emerald-500/20 text-emerald-400"
+                : "bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white",
+            )}
+          >
+            {isCopied ? (
+              <Check className="size-4" />
+            ) : (
+              <Share2 className="size-4" />
+            )}
+          </button>
+        </Hint>
       </div>
     </article>
   );

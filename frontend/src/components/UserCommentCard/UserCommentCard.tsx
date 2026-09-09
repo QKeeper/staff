@@ -13,6 +13,7 @@ import { type UserComment, api } from "@/api/client";
 import { useOptimisticVote } from "@/hooks/useOptimisticVote";
 import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import { cn } from "@/utils/cn";
+import { Hint } from "@/components/ui/Hint";
 
 export interface UserCommentCardProps {
   comment: UserComment;
@@ -186,24 +187,25 @@ export const UserCommentCard = ({
         </button>
 
         {/* Кнопка Поделиться */}
-        <button
-          type="button"
-          onClick={handleShare}
-          aria-label={t("post.share")}
-          title={isCopied ? t("post.linkCopied") : t("post.share")}
-          className={cn(
-            "flex size-7 items-center justify-center rounded-full transition-colors",
-            isCopied
-              ? "bg-emerald-500/20 text-emerald-400"
-              : "bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white",
-          )}
-        >
-          {isCopied ? (
-            <Check className="size-3.5" />
-          ) : (
-            <Share2 className="size-3.5" />
-          )}
-        </button>
+        <Hint content={isCopied ? t("post.linkCopied") : t("post.share")}>
+          <button
+            type="button"
+            onClick={handleShare}
+            aria-label={t("post.share")}
+            className={cn(
+              "flex size-7 items-center justify-center rounded-full transition-colors",
+              isCopied
+                ? "bg-emerald-500/20 text-emerald-400"
+                : "bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white",
+            )}
+          >
+            {isCopied ? (
+              <Check className="size-3.5" />
+            ) : (
+              <Share2 className="size-3.5" />
+            )}
+          </button>
+        </Hint>
       </div>
     </article>
   );

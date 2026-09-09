@@ -34,6 +34,7 @@ import { formatTimeAgo } from "@/utils/formatTimeAgo";
 import { cn } from "@/utils/cn";
 import { PostContent } from "@/components/PostContent/PostContent";
 import { PostMediaGrid } from "@/components/PostMediaGrid/PostMediaGrid";
+import { Hint } from "@/components/ui/Hint";
 
 function buildCommentTree(comments: Comment[]): CommentNode[] {
   const map = new Map<string, CommentNode>();
@@ -309,47 +310,50 @@ export const PostPage = () => {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              const el = document.getElementById("comments");
-              el?.scrollIntoView({ behavior: "smooth" });
-            }}
-            aria-label={t("postPage.commentsTitle")}
-            title={t("postPage.commentsTitle")}
-            className="flex h-8 items-center gap-1.5 rounded-full bg-gray-800 px-3 font-medium text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
-          >
-            <MessageSquare className="size-4" />
-            <span>{comments.length}</span>
-          </button>
+          <Hint content={t("postPage.commentsTitle")}>
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("comments");
+                el?.scrollIntoView({ behavior: "smooth" });
+              }}
+              aria-label={t("postPage.commentsTitle")}
+              className="flex h-8 items-center gap-1.5 rounded-full bg-gray-800 px-3 font-medium text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
+            >
+              <MessageSquare className="size-4" />
+              <span>{comments.length}</span>
+            </button>
+          </Hint>
 
-          <button
-            type="button"
-            aria-label={t("post.repost")}
-            title={t("post.repost")}
-            className="flex size-8 items-center justify-center rounded-full bg-gray-800 text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
-          >
-            <Repeat2 className="size-4" />
-          </button>
+          <Hint content={t("post.repost")}>
+            <button
+              type="button"
+              aria-label={t("post.repost")}
+              className="flex size-8 items-center justify-center rounded-full bg-gray-800 text-gray-200 transition-colors hover:bg-gray-700 hover:text-white"
+            >
+              <Repeat2 className="size-4" />
+            </button>
+          </Hint>
 
-          <button
-            type="button"
-            onClick={handleShare}
-            aria-label={t("post.share")}
-            title={t("post.share")}
-            className={cn(
-              "flex size-8 items-center justify-center rounded-full transition-colors",
-              isCopied
-                ? "bg-emerald-500/20 text-emerald-400"
-                : "bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white",
-            )}
-          >
-            {isCopied ? (
-              <Check className="size-4" />
-            ) : (
-              <Share2 className="size-4" />
-            )}
-          </button>
+          <Hint content={isCopied ? t("post.linkCopied") : t("post.share")}>
+            <button
+              type="button"
+              onClick={handleShare}
+              aria-label={t("post.share")}
+              className={cn(
+                "flex size-8 items-center justify-center rounded-full transition-colors",
+                isCopied
+                  ? "bg-emerald-500/20 text-emerald-400"
+                  : "bg-gray-800 text-gray-200 hover:bg-gray-700 hover:text-white",
+              )}
+            >
+              {isCopied ? (
+                <Check className="size-4" />
+              ) : (
+                <Share2 className="size-4" />
+              )}
+            </button>
+          </Hint>
         </div>
       </article>
 

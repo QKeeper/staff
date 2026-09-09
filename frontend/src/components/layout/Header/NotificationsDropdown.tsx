@@ -5,6 +5,7 @@ import { Bell, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useDropdownContext } from "@/components/ui/Dropdown/DropdownContext";
+import { Hint } from "@/components/ui/Hint";
 import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/AuthModal";
 import {
@@ -107,10 +108,9 @@ const NotificationRow = ({ item }: { item: NotificationItem }) => {
             {formatTimeAgo(item.createdAt, t)}
           </span>
           {!item.isRead && (
-            <span
-              className="size-1.5 shrink-0 rounded-full bg-blue-500"
-              title="Не прочитано"
-            />
+            <Hint content={t("notifications.unread")}>
+              <span className="size-1.5 shrink-0 rounded-full bg-blue-500" />
+            </Hint>
           )}
         </div>
       </div>
@@ -178,6 +178,7 @@ export const NotificationsDropdown = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Queries are skipped if not logged in
   const { data: countData } = useGetUnreadCountQuery(undefined, {
@@ -189,39 +190,45 @@ export const NotificationsDropdown = () => {
   if (!user) {
     return (
       <>
-        <Button
-          variant="ghost"
-          size="small"
-          title={t("header.notifications")}
-          aria-label={t("header.notifications")}
-          onClick={() => setIsAuthOpen(true)}
-          className="size-8 min-w-8 shrink-0 rounded-sm p-0 text-gray-50"
-        >
-          <Bell className="size-4" />
-        </Button>
+        <Hint content={t("header.notifications")} position="bottom">
+          <Button
+            variant="ghost"
+            size="small"
+            aria-label={t("header.notifications")}
+            onClick={() => setIsAuthOpen(true)}
+            className="size-8 min-w-8 shrink-0 rounded-sm p-0 text-gray-50"
+          >
+            <Bell className="size-4" />
+          </Button>
+        </Hint>
         <AuthModal open={isAuthOpen} onOpenChange={setIsAuthOpen} />
       </>
     );
   }
 
   return (
-    <Dropdown align="end">
-      <Dropdown.Trigger asChild>
-        <Button
-          variant="ghost"
-          size="small"
-          title={t("header.notifications")}
-          aria-label={t("header.notifications")}
-          className="relative size-8 min-w-8 shrink-0 rounded-sm p-0 text-gray-50"
-        >
-          <Bell className="size-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white shadow-md ring-2 ring-gray-950">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          )}
-        </Button>
-      </Dropdown.Trigger>
+    <Dropdown align="end" open={isOpen} onOpenChange={setIsOpen}>
+      <Hint
+        content={t("header.notifications")}
+        position="bottom"
+        disabled={isOpen}
+      >
+        <Dropdown.Trigger asChild>
+          <Button
+            variant="ghost"
+            size="small"
+            aria-label={t("header.notifications")}
+            className="relative size-8 min-w-8 shrink-0 rounded-sm p-0 text-gray-50"
+          >
+            <Bell className="size-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white shadow-md ring-2 ring-gray-950">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </Button>
+        </Dropdown.Trigger>
+      </Hint>
 
       <Dropdown.Content
         width="auto"
