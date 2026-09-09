@@ -1,6 +1,7 @@
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { prisma } from "./db/prisma.js";
+import { initWebSocketServer } from "./websocket/wsServer.js";
 
 const app = createApp();
 
@@ -10,6 +11,8 @@ const server = app.listen(env.PORT, () => {
   );
   console.log(`📡 Environment: ${env.NODE_ENV}`);
 });
+
+initWebSocketServer(server);
 
 const gracefulShutdown = async (signal: string) => {
   console.log(`\nReceived ${signal}. Gracefully shutting down...`);

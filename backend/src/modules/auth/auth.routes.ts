@@ -6,7 +6,10 @@ import {
   refreshTokenSchema,
 } from "./auth.schemas.js";
 import { validateRequest } from "../../common/middlewares/validateRequest.js";
-import { requireAuth } from "../../common/middlewares/requireAuth.js";
+import {
+  requireAuth,
+  optionalAuth,
+} from "../../common/middlewares/requireAuth.js";
 
 const router = Router();
 
@@ -29,6 +32,12 @@ router.post("/logout", AuthController.logout);
 router.get("/me", requireAuth, AuthController.me);
 router.patch("/me/avatar", requireAuth, AuthController.updateAvatar);
 router.patch("/me/banner", requireAuth, AuthController.updateBanner);
-router.get("/users/:username", AuthController.getUserProfile);
+router.get("/users/:username", optionalAuth, AuthController.getUserProfile);
+router.post("/users/:username/follow", requireAuth, AuthController.followUser);
+router.delete(
+  "/users/:username/follow",
+  requireAuth,
+  AuthController.unfollowUser,
+);
 
 export { router as authRoutes };

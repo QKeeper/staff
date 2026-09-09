@@ -39,6 +39,11 @@ model User {
   postVotes          PostVote[]
   comments           Comment[]
   commentVotes       CommentVote[]
+  following          UserFollow[]      @relation("UserFollower")
+  followers          UserFollow[]      @relation("UserFollowed")
+  communityFollows   CommunityFollow[]
+  notifications      Notification[]    @relation("UserNotifications")
+  actorNotifications Notification[]    @relation("ActorNotifications")
 
   @@map("users")
 }
@@ -70,9 +75,11 @@ model Community {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  creator User              @relation("CommunityCreator", fields: [creatorId], references: [id])
-  members CommunityMember[]
-  posts   Post[]
+  creator   User              @relation("CommunityCreator", fields: [creatorId], references: [id])
+  members   CommunityMember[]
+  posts     Post[]
+  followers CommunityFollow[]
+  notifications Notification[]
 
   @@map("communities")
 }
@@ -111,6 +118,7 @@ model Post {
   votes     PostVote[]
   comments  Comment[]
   media     PostMedia[]
+  notifications Notification[]
 
   @@index([communityId])
   @@index([authorId])
@@ -186,5 +194,59 @@ model CommentVote {
   @@index([commentId])
   @@index([userId])
   @@map("comment_votes")
+}
+
+model UserFollow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowed", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+model CommunityFollow {
+  id          String    @id @default(uuid())
+  userId      String
+  communityId String
+  createdAt   DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+  @@index([userId])
+  @@index([communityId])
+  @@map("community_follows")
+}
+
+enum NotificationType {
+  NEW_POST
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String
+  actorId     String
+  postId      String?
+  communityId String?
+  type        NotificationType @default(NEW_POST)
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  user      User       @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User       @relation("ActorNotifications", fields: [actorId], references: [id], onDelete: Cascade)
+  post      Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  community Community? @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
 }
 

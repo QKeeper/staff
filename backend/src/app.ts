@@ -7,6 +7,7 @@ import { env } from "./config/env.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { communityRoutes } from "./modules/communities/community.routes.js";
 import { postRoutes } from "./modules/posts/post.routes.js";
+import { notificationRoutes } from "./modules/notifications/notification.routes.js";
 import { errorHandler } from "./common/middlewares/errorHandler.js";
 import { NotFoundError } from "./common/errors/appError.js";
 import { sendSuccess } from "./common/responses/apiResponse.js";
@@ -49,6 +50,7 @@ export const createApp = (): Express => {
   app.use("/api/v1/auth", authRoutes);
   app.use("/api/v1/communities", communityRoutes);
   app.use("/api/v1/posts", postRoutes);
+  app.use("/api/v1/notifications", notificationRoutes);
 
   // Catch 404 for undefined routes
   app.use((_req, _res, next) => {

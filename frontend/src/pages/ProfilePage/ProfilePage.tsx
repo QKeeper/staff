@@ -19,6 +19,8 @@ import {
   useGetUserProfileQuery,
   useUpdateAvatarMutation,
   useUpdateBannerMutation,
+  useFollowUserMutation,
+  useUnfollowUserMutation,
   usersApiSlice,
 } from "@/features/users/usersApiSlice";
 import {
@@ -87,6 +89,22 @@ const ProfilePage = () => {
 
   const [updateAvatarMutation] = useUpdateAvatarMutation();
   const [updateBannerMutation] = useUpdateBannerMutation();
+  const [followUserMutation] = useFollowUserMutation();
+  const [unfollowUserMutation] = useUnfollowUserMutation();
+
+  const handleToggleFollow = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("open-auth-modal"));
+      return;
+    }
+    if (!profileUser) return;
+
+    if (profileUser.isFollowing) {
+      await unfollowUserMutation(profileUser.username);
+    } else {
+      await followUserMutation(profileUser.username);
+    }
+  };
 
   const [optimisticAvatarUrl, setOptimisticAvatarUrl] = useState<string | null>(
     null,
@@ -356,13 +374,13 @@ const ProfilePage = () => {
         subtitle={t("profile.cropBannerSubtitle")}
       />
 
-      {/* 1. Блок баннера и аватара */}
-      <div ref={bannerSectionRef} className="relative mb-12 sm:mb-16 md:mb-20">
+      {/* 1. Блок баннера, аватара и информации пользователя */}
+      <div ref={bannerSectionRef}>
         {/* Баннер во всю ширину с соотношением 3:1 */}
         <div
           onClick={handleBannerClick}
           className={cn(
-            "relative aspect-[3/1] w-full overflow-hidden rounded-2xl border border-gray-800 bg-gray-900",
+            "relative aspect-[3/1] w-full overflow-hidden rounded-2xl bg-gray-800",
             isOwnProfile && "group cursor-pointer",
           )}
         >
@@ -373,7 +391,7 @@ const ProfilePage = () => {
               className="size-full object-cover"
             />
           ) : (
-            <div className="size-full bg-gray-900" />
+            <div className="size-full bg-gray-800" />
           )}
 
           {isOwnProfile && (
@@ -386,33 +404,75 @@ const ProfilePage = () => {
           )}
         </div>
 
-        {/* Аватар: центр строго на нижней границе баннера, с отступом слева */}
-        <div
-          onClick={handleAvatarClick}
-          className={cn(
-            "absolute bottom-0 left-4 z-10 size-20 -translate-x-0 translate-y-1/2 sm:left-6 sm:size-28 md:left-8 md:size-32",
-            "overflow-hidden rounded-full border-4 border-gray-950 bg-gray-900 shadow-2xl",
-            isOwnProfile && "group cursor-pointer",
-          )}
-        >
-          {currentAvatarUrl ? (
-            <img
-              src={currentAvatarUrl}
-              alt={displayName}
-              className="size-full object-cover"
-            />
-          ) : (
-            <div className="flex size-full items-center justify-center bg-gray-800 text-3xl font-bold text-gray-300 uppercase sm:text-4xl">
-              {displayName.charAt(0)}
-            </div>
-          )}
+        {/* Информационная панель ПОД баннером: Аватарка, Имя и Кнопки действий */}
+        <div className="flex flex-wrap items-center justify-between gap-4 px-2 sm:px-4 md:px-6">
+          {/* Слева: Аватарка (выглядывает вверх) и Имя пользователя */}
+          <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
+            <div
+              onClick={handleAvatarClick}
+              className={cn(
+                "relative z-10 -mt-6 flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-gray-950 bg-gray-900 shadow-2xl sm:-mt-8 sm:size-24 md:-mt-10 md:size-28",
+                isOwnProfile && "group cursor-pointer",
+              )}
+            >
+              {currentAvatarUrl ? (
+                <img
+                  src={currentAvatarUrl}
+                  alt={displayName}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <div className="flex size-full items-center justify-center bg-gray-800 text-3xl font-bold text-gray-300 uppercase select-none sm:text-4xl">
+                  {displayName.charAt(0)}
+                </div>
+              )}
 
-          {isOwnProfile && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100">
-              <Camera className="size-6 text-blue-400" />
-              <span className="mt-1 text-[11px] font-medium text-gray-200">
-                {t("profile.changeAvatar")}
+              {isOwnProfile && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100">
+                  <Camera className="size-6 text-blue-400" />
+                  <span className="mt-1 text-[11px] font-medium text-gray-200">
+                    {t("profile.changeAvatar")}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0">
+              <h1 className="truncate text-2xl font-bold text-gray-100 sm:text-3xl">
+                {displayName}
+              </h1>
+              <span className="text-sm font-medium text-gray-400">
+                u/{profileUser.username}
               </span>
+            </div>
+          </div>
+
+          {/* Справа: Кнопка подписки (для чужих профилей) */}
+          {!isOwnProfile && (
+            <div className="flex shrink-0 items-center gap-2.5">
+              {profileUser.isFollowing ? (
+                <Button
+                  variant="outline"
+                  size="medium"
+                  className="group hover:border-red-500/50 hover:bg-red-950/20 hover:text-red-400"
+                  onClick={handleToggleFollow}
+                >
+                  <span className="group-hover:hidden">
+                    {t("profile.following")}
+                  </span>
+                  <span className="hidden group-hover:inline">
+                    {t("profile.unfollow")}
+                  </span>
+                </Button>
+              ) : (
+                <Button
+                  variant="accent"
+                  size="medium"
+                  onClick={handleToggleFollow}
+                >
+                  {t("profile.follow")}
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -429,23 +489,12 @@ const ProfilePage = () => {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Левая основная колонка */}
         <div className="min-w-0 space-y-6 lg:col-span-2">
-          {/* Имя и био пользователя */}
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-baseline gap-2">
-              <h1 className="text-2xl font-bold text-gray-100 sm:text-3xl">
-                {displayName}
-              </h1>
-              <span className="text-sm font-medium text-gray-400">
-                u/{profileUser.username}
-              </span>
-            </div>
-
-            {profileUser.bio && (
-              <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                {profileUser.bio}
-              </p>
-            )}
-          </div>
+          {/* Био пользователя */}
+          {profileUser.bio && (
+            <p className="text-sm leading-relaxed text-gray-300">
+              {profileUser.bio}
+            </p>
+          )}
 
           {/* Вкладки навигации */}
           <div className="flex border-b border-gray-800">
@@ -578,7 +627,7 @@ const ProfilePage = () => {
                     <div
                       onClick={isOwnProfile ? handleBannerClick : undefined}
                       className={cn(
-                        "aspect-[3/1] w-full overflow-hidden rounded-xl border border-gray-800/80 bg-gray-900",
+                        "aspect-[3/1] w-full overflow-hidden rounded-xl bg-gray-800",
                         isOwnProfile && "cursor-pointer",
                       )}
                     >
@@ -589,7 +638,7 @@ const ProfilePage = () => {
                           className="size-full object-cover"
                         />
                       ) : (
-                        <div className="size-full bg-gray-900" />
+                        <div className="size-full bg-gray-800" />
                       )}
                     </div>
 
@@ -608,21 +657,48 @@ const ProfilePage = () => {
                           className="size-full object-cover"
                         />
                       ) : (
-                        <div className="flex size-full items-center justify-center bg-gray-800 text-lg font-bold text-gray-300 uppercase">
+                        <div className="flex size-full items-center justify-center bg-gray-800 text-lg font-bold text-gray-300 uppercase select-none">
                           {displayName.charAt(0)}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Имя и ник */}
-                  <div className="min-w-0">
-                    <div className="truncate text-base font-bold text-gray-100">
-                      {displayName}
+                  {/* Имя, ник и кнопка подписки */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-base font-bold text-gray-100">
+                        {displayName}
+                      </div>
+                      <div className="truncate text-xs text-gray-400">
+                        u/{profileUser.username}
+                      </div>
                     </div>
-                    <div className="truncate text-xs text-gray-400">
-                      u/{profileUser.username}
-                    </div>
+                    {!isOwnProfile && (
+                      <Button
+                        variant={profileUser.isFollowing ? "outline" : "accent"}
+                        size="small"
+                        className={cn(
+                          "shrink-0",
+                          profileUser.isFollowing &&
+                            "group hover:border-red-500/50 hover:bg-red-950/20 hover:text-red-400",
+                        )}
+                        onClick={handleToggleFollow}
+                      >
+                        {profileUser.isFollowing ? (
+                          <>
+                            <span className="group-hover:hidden">
+                              {t("profile.following")}
+                            </span>
+                            <span className="hidden group-hover:inline">
+                              {t("profile.unfollow")}
+                            </span>
+                          </>
+                        ) : (
+                          t("profile.follow")
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -663,6 +739,16 @@ const ProfilePage = () => {
                 </div>
                 <div className="text-xs text-gray-400">
                   {t("profile.userComments")}
+                </div>
+              </div>
+
+              {/* Третья строка: Подписчики */}
+              <div>
+                <div className="text-lg font-bold text-gray-100">
+                  {profileUser.followersCount ?? 0}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {t("profile.followers")}
                 </div>
               </div>
             </div>

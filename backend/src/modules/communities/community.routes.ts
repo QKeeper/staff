@@ -39,4 +39,20 @@ router.get(
   CommunityController.getByName,
 );
 
+// 5. Follow community notifications
+router.post(
+  "/:name/follow",
+  requireAuth,
+  validateRequest({ params: getCommunityParamsSchema }),
+  CommunityController.follow,
+);
+
+// 6. Unfollow community notifications
+router.delete(
+  "/:name/follow",
+  requireAuth,
+  validateRequest({ params: getCommunityParamsSchema }),
+  CommunityController.unfollow,
+);
+
 export { router as communityRoutes };

@@ -32,4 +32,18 @@ export class CommunityController {
     const communities = await CommunityService.getUserCommunities(req.user!.id);
     sendSuccess(res, communities);
   }
+
+  static async follow(req: Request, res: Response): Promise<void> {
+    const rawName = req.params.name;
+    const name = Array.isArray(rawName) ? rawName[0] : rawName;
+    const result = await CommunityService.followCommunity(req.user!.id, name);
+    sendSuccess(res, result);
+  }
+
+  static async unfollow(req: Request, res: Response): Promise<void> {
+    const rawName = req.params.name;
+    const name = Array.isArray(rawName) ? rawName[0] : rawName;
+    const result = await CommunityService.unfollowCommunity(req.user!.id, name);
+    sendSuccess(res, result);
+  }
 }

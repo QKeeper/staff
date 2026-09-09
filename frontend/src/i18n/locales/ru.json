@@ -71,7 +71,12 @@
     "cropAvatarSubtitle": "Перетаскивайте изображение и используйте масштаб для выбора области",
     "zoom": "Масштаб",
     "apply": "Применить",
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "follow": "Подписаться",
+    "following": "Вы подписаны",
+    "unfollow": "Отписаться",
+    "followers": "Подписчики",
+    "followingCount": "Подписки"
   },
   "sidebar": {
     "home": "Главная",
@@ -206,7 +211,10 @@
     "about": "О сообществе",
     "emptyPostsTitle": "В этом сообществе пока нет постов",
     "emptyPostsDescription": "Будьте первым, кто поделится интересным контентом или вопросом!",
-    "createFirstPost": "Создать первый пост"
+    "createFirstPost": "Создать первый пост",
+    "notifyOn": "Включить уведомления",
+    "notifyOff": "Отключить уведомления",
+    "notificationsEnabled": "Уведомления включены"
   },
   "post": {
     "upvote": "Повысить рейтинг",
@@ -241,5 +249,16 @@
   },
   "settings": {
     "title": "Настройки профиля"
+  },
+  "notifications": {
+    "title": "Уведомления",
+    "empty": "У вас пока нет уведомлений",
+    "markAllAsRead": "Отметить все как прочитанные",
+    "newPostInCommunity": "опубликовал(а) пост в",
+    "newPost": "опубликовал(а) новый пост",
+    "justNow": "только что",
+    "minutesAgo": "{{count}} мин. назад",
+    "hoursAgo": "{{count}} ч. назад",
+    "daysAgo": "{{count}} дн. назад"
   }
 }

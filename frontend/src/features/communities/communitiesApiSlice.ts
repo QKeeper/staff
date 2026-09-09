@@ -59,6 +59,54 @@ export const communitiesApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Community", "MyCommunities"],
     }),
+    followCommunity: build.mutation<{ isFollowing: boolean }, string>({
+      query: (name) => ({
+        url: `/communities/${encodeURIComponent(name)}/follow`,
+        method: "POST",
+      }),
+      async onQueryStarted(name, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          communitiesApiSlice.util.updateQueryData(
+            "getCommunityByName",
+            name,
+            (draft) => {
+              if (draft) {
+                draft.isFollowing = true;
+              }
+            },
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
+    }),
+    unfollowCommunity: build.mutation<{ isFollowing: boolean }, string>({
+      query: (name) => ({
+        url: `/communities/${encodeURIComponent(name)}/follow`,
+        method: "DELETE",
+      }),
+      async onQueryStarted(name, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          communitiesApiSlice.util.updateQueryData(
+            "getCommunityByName",
+            name,
+            (draft) => {
+              if (draft) {
+                draft.isFollowing = false;
+              }
+            },
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
+    }),
   }),
 });
 
@@ -67,4 +115,6 @@ export const {
   useGetCommunityByNameQuery,
   useListCommunitiesQuery,
   useCreateCommunityMutation,
+  useFollowCommunityMutation,
+  useUnfollowCommunityMutation,
 } = communitiesApiSlice;

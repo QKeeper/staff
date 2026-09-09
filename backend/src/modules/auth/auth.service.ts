@@ -262,7 +262,7 @@ export class AuthService {
     return user;
   }
 
-  static async getUserProfile(username: string) {
+  static async getUserProfile(username: string, currentUserId?: string) {
     const user = await prisma.user.findFirst({
       where: {
         username: {
@@ -282,6 +282,8 @@ export class AuthService {
           select: {
             posts: true,
             comments: true,
+            followers: true,
+            following: true,
           },
         },
       },
@@ -289,6 +291,19 @@ export class AuthService {
 
     if (!user) {
       throw new NotFoundError("User not found");
+    }
+
+    let isFollowing = false;
+    if (currentUserId && currentUserId !== user.id) {
+      const follow = await prisma.userFollow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: currentUserId,
+            followingId: user.id,
+          },
+        },
+      });
+      isFollowing = !!follow;
     }
 
     const [postAgg, commentAgg] = await Promise.all([
@@ -309,7 +324,83 @@ export class AuthService {
 
     return {
       ...user,
+      isFollowing,
+      followersCount: user._count.followers,
+      followingCount: user._count.following,
       karma,
+    };
+  }
+
+  static async followUser(followerId: string, username: string) {
+    const targetUser = await prisma.user.findFirst({
+      where: {
+        username: {
+          equals: username,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundError("User not found");
+    }
+
+    if (targetUser.id === followerId) {
+      throw new BadRequestError("You cannot follow yourself");
+    }
+
+    await prisma.userFollow.upsert({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId: targetUser.id,
+        },
+      },
+      create: {
+        followerId,
+        followingId: targetUser.id,
+      },
+      update: {},
+    });
+
+    const followersCount = await prisma.userFollow.count({
+      where: { followingId: targetUser.id },
+    });
+
+    return {
+      isFollowing: true,
+      followersCount,
+    };
+  }
+
+  static async unfollowUser(followerId: string, username: string) {
+    const targetUser = await prisma.user.findFirst({
+      where: {
+        username: {
+          equals: username,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundError("User not found");
+    }
+
+    await prisma.userFollow.deleteMany({
+      where: {
+        followerId,
+        followingId: targetUser.id,
+      },
+    });
+
+    const followersCount = await prisma.userFollow.count({
+      where: { followingId: targetUser.id },
+    });
+
+    return {
+      isFollowing: false,
+      followersCount,
     };
   }
 

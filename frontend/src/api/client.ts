@@ -145,6 +145,9 @@ export interface UserProfile {
   bio?: string | null;
   createdAt: string;
   karma?: number;
+  isFollowing?: boolean;
+  followersCount?: number;
+  followingCount?: number;
   _count: {
     posts: number;
     comments: number;
@@ -160,10 +163,37 @@ export interface Community {
   isPrivate: boolean;
   createdAt: string;
   membersCount: number;
+  isFollowing?: boolean;
   currentUserMembership?: {
     role: "OWNER" | "ADMIN" | "MODERATOR" | "MEMBER";
     permissions: string[];
     joinedAt?: string;
+  } | null;
+}
+
+export interface NotificationItem {
+  id: string;
+  userId: string;
+  actorId: string;
+  postId?: string | null;
+  communityId?: string | null;
+  type: "NEW_POST";
+  isRead: boolean;
+  createdAt: string;
+  actor?: {
+    id: string;
+    username: string;
+    displayName?: string | null;
+    avatarUrl?: string | null;
+  };
+  community?: {
+    id: string;
+    name: string;
+    displayName?: string | null;
+  } | null;
+  post?: {
+    id: string;
+    title: string;
   } | null;
 }
 

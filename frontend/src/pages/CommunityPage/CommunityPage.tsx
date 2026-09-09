@@ -1,21 +1,25 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router";
-import { MessageSquarePlus, PlusIcon, Users } from "lucide-react";
+import { Bell, MessageSquarePlus, PlusIcon, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { store } from "@/app/store";
 import {
   communitiesApiSlice,
   useGetCommunityByNameQuery,
+  useFollowCommunityMutation,
+  useUnfollowCommunityMutation,
 } from "@/features/communities/communitiesApiSlice";
 import {
   postsApiSlice,
   useGetPostsQuery,
 } from "@/features/posts/postsApiSlice";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { Select, type SelectItem } from "@/components/ui/Select";
 import { PostCard } from "@/components/PostCard";
 import { formatRegistrationDate } from "@/utils/formatPlural";
+import { cn } from "@/utils/cn";
 
 export interface CommunityLoaderData {
   communityName: string;
@@ -62,6 +66,24 @@ const CommunityPage = () => {
     { communityName, sort: sortValue },
     { skip: !communityName },
   );
+
+  const { user } = useAuth();
+  const [followCommunityMutation] = useFollowCommunityMutation();
+  const [unfollowCommunityMutation] = useUnfollowCommunityMutation();
+
+  const handleToggleCommunityFollow = async () => {
+    if (!user) {
+      window.dispatchEvent(new CustomEvent("open-auth-modal"));
+      return;
+    }
+    if (!community) return;
+
+    if (community.isFollowing) {
+      await unfollowCommunityMutation(community.name);
+    } else {
+      await followCommunityMutation(community.name);
+    }
+  };
 
   const bannerSectionRef = useRef<HTMLDivElement>(null);
   const [isBannerScrolled, setIsBannerScrolled] = useState(false);
@@ -121,24 +143,83 @@ const CommunityPage = () => {
 
   return (
     <div className="flex-1 space-y-6 pb-16">
-      {/* 1. Блок баннера и аватара */}
-      <div ref={bannerSectionRef} className="relative mb-12 sm:mb-16 md:mb-20">
+      {/* 1. Блок баннера, аватара и информации сообщества */}
+      <div ref={bannerSectionRef}>
         {/* Баннер во всю ширину с соотношением 3:1 */}
-        <div className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl border border-gray-800 bg-gray-900">
-          <div className="size-full bg-gray-900" />
+        <div className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl bg-gray-800">
+          <div className="size-full bg-gray-800" />
         </div>
 
-        {/* Аватар: центр строго на нижней границе баннера, с отступом слева */}
-        <div className="absolute bottom-0 left-4 z-10 flex size-20 -translate-x-0 translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-4 border-gray-950 bg-gray-900 shadow-2xl sm:left-6 sm:size-28 md:left-8 md:size-32">
-          {displayName ? (
-            <div className="flex size-full items-center justify-center bg-gray-800 text-3xl font-bold text-gray-300 uppercase sm:text-4xl">
-              {displayName.charAt(0)}
+        {/* Информационная панель ПОД баннером: Аватарка, Название и Кнопки действий */}
+        <div className="flex flex-wrap items-center justify-between gap-4 px-2 sm:px-4 md:px-6">
+          {/* Слева: Аватарка (выглядывает вверх) и Название сообщества */}
+          <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
+            <div className="relative z-10 -mt-6 flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-gray-950 bg-gray-900 shadow-2xl sm:-mt-8 sm:size-24 md:-mt-10 md:size-28">
+              {displayName ? (
+                <div className="flex size-full items-center justify-center bg-gray-800 text-3xl font-bold text-gray-300 uppercase select-none sm:text-4xl">
+                  {displayName.charAt(0)}
+                </div>
+              ) : (
+                <div className="flex size-full items-center justify-center bg-gray-800 text-gray-300">
+                  <Users className="size-8 sm:size-12" />
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex size-full items-center justify-center bg-gray-800 text-gray-300">
-              <Users className="size-8 sm:size-12" />
+
+            <div className="min-w-0">
+              <h1 className="truncate text-2xl font-bold text-gray-100 sm:text-3xl">
+                {displayName}
+              </h1>
+              <span className="text-sm font-medium text-gray-400">
+                r/{community.name}
+              </span>
             </div>
-          )}
+          </div>
+
+          {/* Справа: Кнопка уведомлений и Создать пост */}
+          <div className="flex shrink-0 items-center gap-2.5">
+            <Button
+              variant={community.isFollowing ? "accent" : "solid"}
+              size="medium"
+              title={
+                community.isFollowing
+                  ? t("community.notificationsEnabled")
+                  : t("community.notifyOn")
+              }
+              aria-label={
+                community.isFollowing
+                  ? t("community.notificationsEnabled")
+                  : t("community.notifyOn")
+              }
+              className={cn(
+                "size-10 min-w-10 rounded p-0 transition-colors",
+                community.isFollowing
+                  ? "border-transparent bg-white text-gray-950 hover:border-transparent hover:bg-white hover:text-gray-950"
+                  : "text-gray-300 hover:text-white",
+              )}
+              onClick={handleToggleCommunityFollow}
+            >
+              <Bell
+                className={cn(
+                  "size-4",
+                  community.isFollowing && "fill-current",
+                )}
+              />
+            </Button>
+
+            <Link
+              to={`/submit?community=${encodeURIComponent(communityName)}`}
+              state={{ community }}
+            >
+              <Button
+                variant="accent"
+                size="medium"
+                icon={<PlusIcon className="size-4" />}
+              >
+                {t("community.createPost")}
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -146,23 +227,12 @@ const CommunityPage = () => {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Левая основная колонка (2/3) */}
         <div className="min-w-0 space-y-6 lg:col-span-2">
-          {/* Название и описание сообщества */}
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-baseline gap-2">
-              <h1 className="text-2xl font-bold text-gray-100 sm:text-3xl">
-                {displayName}
-              </h1>
-              <span className="text-sm font-medium text-gray-400">
-                r/{community.name}
-              </span>
-            </div>
-
-            {community.description && (
-              <p className="mt-2 text-sm leading-relaxed text-gray-300">
-                {community.description}
-              </p>
-            )}
-          </div>
+          {/* Описание сообщества */}
+          {community.description && (
+            <p className="text-sm leading-relaxed text-gray-300">
+              {community.description}
+            </p>
+          )}
 
           {/* Панель сортировки постов */}
           <div className="flex items-center justify-between border-b border-gray-800/80 pb-3">
@@ -247,14 +317,14 @@ const CommunityPage = () => {
                 >
                   <div className="relative mb-8">
                     {/* Мини-баннер */}
-                    <div className="aspect-[3/1] w-full overflow-hidden rounded-xl border border-gray-800/80 bg-gray-900">
-                      <div className="size-full bg-gray-900" />
+                    <div className="aspect-[3/1] w-full overflow-hidden rounded-xl bg-gray-800">
+                      <div className="size-full bg-gray-800" />
                     </div>
 
                     {/* Мини-аватар */}
                     <div className="absolute bottom-0 left-3.5 z-10 flex size-14 translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-2 border-gray-950 bg-gray-900 shadow-lg">
                       {displayName ? (
-                        <div className="flex size-full items-center justify-center bg-gray-800 text-lg font-bold text-gray-300 uppercase">
+                        <div className="flex size-full items-center justify-center bg-gray-800 text-lg font-bold text-gray-300 uppercase select-none">
                           {displayName.charAt(0)}
                         </div>
                       ) : (
@@ -265,14 +335,44 @@ const CommunityPage = () => {
                     </div>
                   </div>
 
-                  {/* Имя и r/{name} */}
-                  <div className="min-w-0">
-                    <div className="truncate text-base font-bold text-gray-100">
-                      {displayName}
+                  {/* Имя, r/{name} и кнопка уведомлений */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-base font-bold text-gray-100">
+                        {displayName}
+                      </div>
+                      <div className="truncate text-xs text-gray-400">
+                        r/{community.name}
+                      </div>
                     </div>
-                    <div className="truncate text-xs text-gray-400">
-                      r/{community.name}
-                    </div>
+                    <Button
+                      variant={community.isFollowing ? "accent" : "ghost"}
+                      size="small"
+                      title={
+                        community.isFollowing
+                          ? t("community.notificationsEnabled")
+                          : t("community.notifyOn")
+                      }
+                      aria-label={
+                        community.isFollowing
+                          ? t("community.notificationsEnabled")
+                          : t("community.notifyOn")
+                      }
+                      className={cn(
+                        "size-8 min-w-8 shrink-0 rounded p-0 transition-colors",
+                        community.isFollowing
+                          ? "border-transparent bg-white text-gray-950 hover:bg-white hover:text-gray-950"
+                          : "text-gray-400 hover:bg-gray-800 hover:text-gray-200",
+                      )}
+                      onClick={handleToggleCommunityFollow}
+                    >
+                      <Bell
+                        className={cn(
+                          "size-4",
+                          community.isFollowing && "fill-current",
+                        )}
+                      />
+                    </Button>
                   </div>
                 </motion.div>
               )}
@@ -310,22 +410,6 @@ const CommunityPage = () => {
                 </div>
               </div>
             </div>
-
-            {/* Кнопка создания публикации */}
-            <Link
-              to={`/submit?community=${encodeURIComponent(communityName)}`}
-              state={{ community }}
-              className="block pt-2"
-            >
-              <Button
-                variant="accent"
-                size="medium"
-                className="w-full"
-                icon={<PlusIcon className="size-4" />}
-              >
-                {t("community.createPost")}
-              </Button>
-            </Link>
           </div>
         </div>
       </div>

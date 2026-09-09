@@ -92,8 +92,22 @@ export class AuthController {
   static async getUserProfile(req: Request, res: Response): Promise<void> {
     const rawUsername = req.params.username;
     const username = Array.isArray(rawUsername) ? rawUsername[0] : rawUsername;
-    const user = await AuthService.getUserProfile(username);
+    const user = await AuthService.getUserProfile(username, req.user?.id);
     sendSuccess(res, { user });
+  }
+
+  static async followUser(req: Request, res: Response): Promise<void> {
+    const rawUsername = req.params.username;
+    const username = Array.isArray(rawUsername) ? rawUsername[0] : rawUsername;
+    const result = await AuthService.followUser(req.user!.id, username);
+    sendSuccess(res, result);
+  }
+
+  static async unfollowUser(req: Request, res: Response): Promise<void> {
+    const rawUsername = req.params.username;
+    const username = Array.isArray(rawUsername) ? rawUsername[0] : rawUsername;
+    const result = await AuthService.unfollowUser(req.user!.id, username);
+    sendSuccess(res, result);
   }
 
   static async updateAvatar(req: Request, res: Response): Promise<void> {

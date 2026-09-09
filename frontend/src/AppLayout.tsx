@@ -6,6 +6,8 @@ import { store } from "@/app/store";
 import { usersApiSlice } from "@/features/users/usersApiSlice";
 import { communitiesApiSlice } from "@/features/communities/communitiesApiSlice";
 
+import { useNotificationsSocket } from "@/hooks/useNotificationsSocket";
+
 export interface LayoutLoaderData {
   user: User | null;
   communities: MyCommunity[];
@@ -25,6 +27,7 @@ export const layoutLoader = async (): Promise<LayoutLoaderData> => {
 };
 
 function AppLayout() {
+  useNotificationsSocket();
   const navigation = useNavigation();
   const isNavigating = navigation.state === "loading";
 
@@ -36,7 +39,7 @@ function AppLayout() {
         </div>
       )}
       <Header />
-      <div className="container mx-auto flex max-w-7xl flex-nowrap gap-4 px-4">
+      <div className="container mx-auto flex max-w-7xl flex-nowrap gap-4 px-4 pt-4">
         <Sidebar />
         <Outlet />
       </div>

@@ -1,4 +1,8 @@
-import { PrismaClient, Prisma } from "../generated/client/index.js";
+import {
+  PrismaClient,
+  Prisma,
+  NotificationType,
+} from "../generated/client/index.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import { env } from "../config/env.js";
@@ -22,4 +26,4 @@ if (env.NODE_ENV !== "production") {
   global.__prisma = prisma;
 }
 
-export { PrismaClient, Prisma };
+export { PrismaClient, Prisma, NotificationType };

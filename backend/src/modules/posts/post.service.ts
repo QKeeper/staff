@@ -1,6 +1,7 @@
 import { prisma, Prisma } from "../../db/prisma.js";
 import { NotFoundError } from "../../common/errors/appError.js";
 import { CreatePostInput, ListPostsQuery } from "./post.schemas.js";
+import { NotificationService } from "../notifications/notification.service.js";
 
 export class PostService {
   static async createPost(userId: string, input: CreatePostInput) {
@@ -63,6 +64,16 @@ export class PostService {
           orderBy: { order: "asc" },
         },
       },
+    });
+
+    // Dispatch notifications asynchronously without blocking response
+    NotificationService.createPostNotifications({
+      postId: post.id,
+      authorId: userId,
+      communityId: post.communityId,
+      title: post.title,
+    }).catch((err) => {
+      console.error("Error creating post notifications:", err);
     });
 
     return {
@@ -242,6 +253,18 @@ export class PostService {
 
     if (!post) {
       throw new NotFoundError("Post not found");
+    }
+
+    if (currentUserId) {
+      NotificationService.markPostNotificationsAsRead(
+        currentUserId,
+        postId,
+      ).catch((err) => {
+        console.error(
+          "Failed to mark post notifications as read on view:",
+          err,
+        );
+      });
     }
 
     let userVote = 0;

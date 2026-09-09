@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/Button";
 import { IconS } from "@/components/ui/icons";
 import { Select } from "@/components/ui/Select";
-import { Bell, PlusIcon, Search } from "lucide-react";
+import { PlusIcon, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Profile } from "./Profile";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
@@ -39,18 +39,6 @@ const Header = () => {
     </Link>
   );
 
-  const Notifications = () => (
-    <Button
-      variant="ghost"
-      size="small"
-      title={t("header.notifications")}
-      aria-label={t("header.notifications")}
-      className="size-8 min-w-8 shrink-0 rounded-sm p-0 text-gray-50"
-    >
-      <Bell className="size-4" />
-    </Button>
-  );
-
   const LanguageSwitcher = () => {
     return (
       <Select
@@ -74,7 +62,7 @@ const Header = () => {
         <Searchbar />
         <CreatePost />
         <LanguageSwitcher />
-        <Notifications />
+        <NotificationsDropdown />
         <Profile />
       </div>
     </header>

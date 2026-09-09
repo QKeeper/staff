@@ -82,20 +82,33 @@ export class CommunityService {
     }
 
     let currentUserMembership = null;
+    let isFollowing = false;
     if (currentUserId) {
-      currentUserMembership = await prisma.communityMember.findUnique({
-        where: {
-          userId_communityId: {
-            userId: currentUserId,
-            communityId: community.id,
+      const [membership, follow] = await Promise.all([
+        prisma.communityMember.findUnique({
+          where: {
+            userId_communityId: {
+              userId: currentUserId,
+              communityId: community.id,
+            },
           },
-        },
-        select: {
-          role: true,
-          permissions: true,
-          joinedAt: true,
-        },
-      });
+          select: {
+            role: true,
+            permissions: true,
+            joinedAt: true,
+          },
+        }),
+        prisma.communityFollow.findUnique({
+          where: {
+            userId_communityId: {
+              userId: currentUserId,
+              communityId: community.id,
+            },
+          },
+        }),
+      ]);
+      currentUserMembership = membership;
+      isFollowing = Boolean(follow);
     }
 
     return {
@@ -109,6 +122,7 @@ export class CommunityService {
       creator: community.creator,
       membersCount: community._count.members,
       currentUserMembership,
+      isFollowing,
     };
   }
 
@@ -195,5 +209,60 @@ export class CommunityService {
       membersCount: m.community._count.members,
       joinedAt: m.joinedAt,
     }));
+  }
+
+  static async followCommunity(userId: string, communityName: string) {
+    const community = await prisma.community.findFirst({
+      where: {
+        name: {
+          equals: communityName,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (!community) {
+      throw new NotFoundError(`Community '${communityName}' not found`);
+    }
+
+    await prisma.communityFollow.upsert({
+      where: {
+        userId_communityId: {
+          userId,
+          communityId: community.id,
+        },
+      },
+      create: {
+        userId,
+        communityId: community.id,
+      },
+      update: {},
+    });
+
+    return { isFollowing: true };
+  }
+
+  static async unfollowCommunity(userId: string, communityName: string) {
+    const community = await prisma.community.findFirst({
+      where: {
+        name: {
+          equals: communityName,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (!community) {
+      throw new NotFoundError(`Community '${communityName}' not found`);
+    }
+
+    await prisma.communityFollow.deleteMany({
+      where: {
+        userId,
+        communityId: community.id,
+      },
+    });
+
+    return { isFollowing: false };
   }
 }

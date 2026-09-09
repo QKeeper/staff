@@ -24,6 +24,7 @@ import {
   useListPostCommentsQuery,
   useCreateCommentMutation,
 } from "@/features/posts/postsApiSlice";
+import { useMarkPostNotificationsAsReadMutation } from "@/features/notifications/notificationsApiSlice";
 import { useAuth } from "@/context/AuthContext";
 import { useOptimisticVote } from "@/hooks/useOptimisticVote";
 import { CommentItem, type CommentNode } from "@/components/CommentItem";
@@ -87,6 +88,14 @@ export const PostPage = () => {
     skip: !postId,
   });
   const [createCommentMutation] = useCreateCommentMutation();
+  const [markPostNotificationsAsRead] =
+    useMarkPostNotificationsAsReadMutation();
+
+  useEffect(() => {
+    if (user && postId) {
+      markPostNotificationsAsRead(postId);
+    }
+  }, [user, postId, markPostNotificationsAsRead]);
 
   const [commentContent, setCommentContent] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);

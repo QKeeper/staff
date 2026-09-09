@@ -71,7 +71,12 @@
     "cropAvatarSubtitle": "Drag to position and use slider to zoom",
     "zoom": "Zoom",
     "apply": "Apply",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "follow": "Follow",
+    "following": "Following",
+    "unfollow": "Unfollow",
+    "followers": "Followers",
+    "followingCount": "Following"
   },
   "sidebar": {
     "home": "Home",
@@ -206,7 +211,10 @@
     "about": "About community",
     "emptyPostsTitle": "No posts in this community yet",
     "emptyPostsDescription": "Be the first to share an interesting thought, question, or story!",
-    "createFirstPost": "Create the first post"
+    "createFirstPost": "Create the first post",
+    "notifyOn": "Enable notifications",
+    "notifyOff": "Disable notifications",
+    "notificationsEnabled": "Notifications enabled"
   },
   "post": {
     "upvote": "Upvote",
@@ -241,5 +249,16 @@
   },
   "settings": {
     "title": "Profile Settings"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You have no notifications yet",
+    "markAllAsRead": "Mark all as read",
+    "newPostInCommunity": "published a post in",
+    "newPost": "published a new post",
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
   }
 }
