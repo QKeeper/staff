@@ -161,6 +161,9 @@ export interface Community {
   description: string;
   topic: string;
   isPrivate: boolean;
+  avatarUrl?: string | null;
+  bannerUrl?: string | null;
+  creatorId?: string;
   createdAt: string;
   membersCount: number;
   isFollowing?: boolean;
@@ -203,6 +206,8 @@ export interface MyCommunity {
   displayName?: string | null;
   description: string;
   topic: string;
+  avatarUrl?: string | null;
+  bannerUrl?: string | null;
   role: "OWNER" | "ADMIN" | "MODERATOR" | "MEMBER";
   permissions: string[];
   membersCount: number;

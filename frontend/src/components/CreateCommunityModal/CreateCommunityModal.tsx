@@ -235,6 +235,8 @@ const CreateCommunityModal = () => {
               </Modal.Close>
               <Hint
                 disabled={isFormValid || isLoading}
+                position="top-right"
+                contentClassName="min-w-48 whitespace-normal p-2.5"
                 content={
                   <div className="flex flex-col gap-1">
                     {errorMessages.map((error, idx) => (

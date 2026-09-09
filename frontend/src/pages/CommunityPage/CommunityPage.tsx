@@ -1,7 +1,14 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLoaderData, type LoaderFunctionArgs } from "react-router";
-import { Bell, MessageSquarePlus, PlusIcon, Users } from "lucide-react";
+import {
+  Bell,
+  MessageSquarePlus,
+  PlusIcon,
+  Users,
+  Camera,
+  AlertCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { store } from "@/app/store";
 import {
@@ -9,6 +16,8 @@ import {
   useGetCommunityByNameQuery,
   useFollowCommunityMutation,
   useUnfollowCommunityMutation,
+  useUpdateCommunityAvatarMutation,
+  useUpdateCommunityBannerMutation,
 } from "@/features/communities/communitiesApiSlice";
 import {
   postsApiSlice,
@@ -16,8 +25,10 @@ import {
 } from "@/features/posts/postsApiSlice";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
+import { Hint } from "@/components/ui/Hint";
 import { Select, type SelectItem } from "@/components/ui/Select";
 import { PostCard } from "@/components/PostCard";
+import { ImageCropModal } from "@/components/ImageCropModal";
 import { formatRegistrationDate } from "@/utils/formatPlural";
 import { cn } from "@/utils/cn";
 
@@ -85,6 +96,118 @@ const CommunityPage = () => {
     }
   };
 
+  const [updateAvatarMutation] = useUpdateCommunityAvatarMutation();
+  const [updateBannerMutation] = useUpdateCommunityBannerMutation();
+
+  const isCanEdit = Boolean(
+    user &&
+    community &&
+    (community.creatorId === user.id ||
+      community.currentUserMembership?.role === "OWNER" ||
+      community.currentUserMembership?.role === "ADMIN" ||
+      user.globalRole === "ADMIN"),
+  );
+
+  const [optimisticAvatarUrl, setOptimisticAvatarUrl] = useState<string | null>(
+    null,
+  );
+  const [optimisticBannerUrl, setOptimisticBannerUrl] = useState<string | null>(
+    null,
+  );
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const [cropAvatarFile, setCropAvatarFile] = useState<File | null>(null);
+  const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
+
+  const [cropBannerFile, setCropBannerFile] = useState<File | null>(null);
+  const [isBannerCropModalOpen, setIsBannerCropModalOpen] = useState(false);
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  const currentAvatarUrl = optimisticAvatarUrl || community?.avatarUrl || null;
+  const currentBannerUrl = optimisticBannerUrl || community?.bannerUrl || null;
+
+  useEffect(() => {
+    setOptimisticAvatarUrl(null);
+    setOptimisticBannerUrl(null);
+    setUploadError(null);
+  }, [communityName]);
+
+  const handleAvatarClick = () => {
+    if (!isCanEdit) return;
+    avatarInputRef.current?.click();
+  };
+
+  const handleBannerClick = () => {
+    if (!isCanEdit) return;
+    bannerInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError(t("community.fileTooLarge"));
+      e.target.value = "";
+      return;
+    }
+
+    setUploadError(null);
+    setCropAvatarFile(file);
+    setIsAvatarCropModalOpen(true);
+    e.target.value = "";
+  };
+
+  const handleApplyCroppedAvatar = async (croppedDataUrl: string) => {
+    if (!community) return;
+    setOptimisticAvatarUrl(croppedDataUrl);
+    try {
+      await updateAvatarMutation({
+        name: community.name,
+        image: croppedDataUrl,
+      }).unwrap();
+    } catch {
+      setOptimisticAvatarUrl(null);
+      setUploadError(t("community.uploadError"));
+    } finally {
+      setOptimisticAvatarUrl(null);
+    }
+  };
+
+  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError(t("community.fileTooLarge"));
+      e.target.value = "";
+      return;
+    }
+
+    setUploadError(null);
+    setCropBannerFile(file);
+    setIsBannerCropModalOpen(true);
+    e.target.value = "";
+  };
+
+  const handleApplyCroppedBanner = async (croppedDataUrl: string) => {
+    if (!community) return;
+    setOptimisticBannerUrl(croppedDataUrl);
+    try {
+      await updateBannerMutation({
+        name: community.name,
+        image: croppedDataUrl,
+      }).unwrap();
+    } catch {
+      setOptimisticBannerUrl(null);
+      setUploadError(t("community.uploadError"));
+    } finally {
+      setOptimisticBannerUrl(null);
+    }
+  };
+
   const bannerSectionRef = useRef<HTMLDivElement>(null);
   const [isBannerScrolled, setIsBannerScrolled] = useState(false);
 
@@ -146,22 +269,66 @@ const CommunityPage = () => {
       {/* 1. Блок баннера, аватара и информации сообщества */}
       <div ref={bannerSectionRef}>
         {/* Баннер во всю ширину с соотношением 3:1 */}
-        <div className="relative aspect-[3/1] w-full overflow-hidden rounded-2xl bg-gray-800">
-          <div className="size-full bg-gray-800" />
+        <div
+          onClick={handleBannerClick}
+          className={cn(
+            "relative aspect-[3/1] w-full overflow-hidden rounded-2xl bg-gray-800",
+            isCanEdit && "group cursor-pointer",
+          )}
+        >
+          {currentBannerUrl ? (
+            <img
+              src={currentBannerUrl}
+              alt={displayName}
+              className="size-full object-cover"
+            />
+          ) : (
+            <div className="size-full bg-gray-800" />
+          )}
+
+          {isCanEdit && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100">
+              <div className="flex items-center gap-2 rounded-full bg-gray-900/80 px-4 py-2 text-sm font-medium text-gray-200 shadow-lg backdrop-blur-md">
+                <Camera className="size-4 text-blue-400" />
+                <span>{t("community.changeBanner")}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Информационная панель ПОД баннером: Аватарка, Название и Кнопки действий */}
         <div className="flex flex-wrap items-center justify-between gap-4 px-2 sm:px-4 md:px-6">
           {/* Слева: Аватарка (выглядывает вверх) и Название сообщества */}
           <div className="flex min-w-0 items-center gap-3.5 sm:gap-4">
-            <div className="relative z-10 -mt-6 flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-gray-950 bg-gray-900 shadow-2xl sm:-mt-8 sm:size-24 md:-mt-10 md:size-28">
-              {displayName ? (
+            <div
+              onClick={handleAvatarClick}
+              className={cn(
+                "relative z-10 -mt-6 flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-gray-950 bg-gray-900 shadow-2xl sm:-mt-8 sm:size-24 md:-mt-10 md:size-28",
+                isCanEdit && "group cursor-pointer",
+              )}
+            >
+              {currentAvatarUrl ? (
+                <img
+                  src={currentAvatarUrl}
+                  alt={displayName}
+                  className="size-full object-cover"
+                />
+              ) : displayName ? (
                 <div className="flex size-full items-center justify-center bg-gray-800 text-3xl font-bold text-gray-300 uppercase select-none sm:text-4xl">
                   {displayName.charAt(0)}
                 </div>
               ) : (
                 <div className="flex size-full items-center justify-center bg-gray-800 text-gray-300">
                   <Users className="size-8 sm:size-12" />
+                </div>
+              )}
+
+              {isCanEdit && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 opacity-0 backdrop-blur-[2px] transition-opacity group-hover:opacity-100">
+                  <Camera className="size-6 text-blue-400" />
+                  <span className="mt-1 text-[11px] font-medium text-gray-200">
+                    {t("community.changeAvatar")}
+                  </span>
                 </div>
               )}
             </div>
@@ -178,34 +345,38 @@ const CommunityPage = () => {
 
           {/* Справа: Кнопка уведомлений и Создать пост */}
           <div className="flex shrink-0 items-center gap-2.5">
-            <Button
-              variant={community.isFollowing ? "accent" : "solid"}
-              size="medium"
-              title={
+            <Hint
+              content={
                 community.isFollowing
                   ? t("community.notificationsEnabled")
                   : t("community.notifyOn")
               }
-              aria-label={
-                community.isFollowing
-                  ? t("community.notificationsEnabled")
-                  : t("community.notifyOn")
-              }
-              className={cn(
-                "size-10 min-w-10 rounded p-0 transition-colors",
-                community.isFollowing
-                  ? "border-transparent bg-white text-gray-950 hover:border-transparent hover:bg-white hover:text-gray-950"
-                  : "text-gray-300 hover:text-white",
-              )}
-              onClick={handleToggleCommunityFollow}
+              position="top"
             >
-              <Bell
+              <Button
+                variant={community.isFollowing ? "accent" : "solid"}
+                size="medium"
+                aria-label={
+                  community.isFollowing
+                    ? t("community.notificationsEnabled")
+                    : t("community.notifyOn")
+                }
                 className={cn(
-                  "size-4",
-                  community.isFollowing && "fill-current",
+                  "size-10 min-w-10 rounded p-0 transition-colors",
+                  community.isFollowing
+                    ? "border-transparent bg-white text-gray-950 hover:border-transparent hover:bg-white hover:text-gray-950"
+                    : "text-gray-300 hover:text-white",
                 )}
-              />
-            </Button>
+                onClick={handleToggleCommunityFollow}
+              >
+                <Bell
+                  className={cn(
+                    "size-4",
+                    community.isFollowing && "fill-current",
+                  )}
+                />
+              </Button>
+            </Hint>
 
             <Link
               to={`/submit?community=${encodeURIComponent(communityName)}`}
@@ -222,6 +393,13 @@ const CommunityPage = () => {
           </div>
         </div>
       </div>
+
+      {uploadError && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+          <AlertCircle className="size-4 shrink-0 text-red-400" />
+          <span>{uploadError}</span>
+        </div>
+      )}
 
       {/* 2. Двухколоночный лейаут */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -318,12 +496,26 @@ const CommunityPage = () => {
                   <div className="relative mb-8">
                     {/* Мини-баннер */}
                     <div className="aspect-[3/1] w-full overflow-hidden rounded-xl bg-gray-800">
-                      <div className="size-full bg-gray-800" />
+                      {currentBannerUrl ? (
+                        <img
+                          src={currentBannerUrl}
+                          alt={displayName}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <div className="size-full bg-gray-800" />
+                      )}
                     </div>
 
                     {/* Мини-аватар */}
                     <div className="absolute bottom-0 left-3.5 z-10 flex size-14 translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-2 border-gray-950 bg-gray-900 shadow-lg">
-                      {displayName ? (
+                      {currentAvatarUrl ? (
+                        <img
+                          src={currentAvatarUrl}
+                          alt={displayName}
+                          className="size-full object-cover"
+                        />
+                      ) : displayName ? (
                         <div className="flex size-full items-center justify-center bg-gray-800 text-lg font-bold text-gray-300 uppercase select-none">
                           {displayName.charAt(0)}
                         </div>
@@ -345,34 +537,38 @@ const CommunityPage = () => {
                         r/{community.name}
                       </div>
                     </div>
-                    <Button
-                      variant={community.isFollowing ? "accent" : "ghost"}
-                      size="small"
-                      title={
+                    <Hint
+                      content={
                         community.isFollowing
                           ? t("community.notificationsEnabled")
                           : t("community.notifyOn")
                       }
-                      aria-label={
-                        community.isFollowing
-                          ? t("community.notificationsEnabled")
-                          : t("community.notifyOn")
-                      }
-                      className={cn(
-                        "size-8 min-w-8 shrink-0 rounded p-0 transition-colors",
-                        community.isFollowing
-                          ? "border-transparent bg-white text-gray-950 hover:bg-white hover:text-gray-950"
-                          : "text-gray-400 hover:bg-gray-800 hover:text-gray-200",
-                      )}
-                      onClick={handleToggleCommunityFollow}
+                      position="top-right"
                     >
-                      <Bell
+                      <Button
+                        variant={community.isFollowing ? "accent" : "ghost"}
+                        size="small"
+                        aria-label={
+                          community.isFollowing
+                            ? t("community.notificationsEnabled")
+                            : t("community.notifyOn")
+                        }
                         className={cn(
-                          "size-4",
-                          community.isFollowing && "fill-current",
+                          "size-8 min-w-8 shrink-0 rounded p-0 transition-colors",
+                          community.isFollowing
+                            ? "border-transparent bg-white text-gray-950 hover:bg-white hover:text-gray-950"
+                            : "text-gray-400 hover:bg-gray-800 hover:text-gray-200",
                         )}
-                      />
-                    </Button>
+                        onClick={handleToggleCommunityFollow}
+                      >
+                        <Bell
+                          className={cn(
+                            "size-4",
+                            community.isFollowing && "fill-current",
+                          )}
+                        />
+                      </Button>
+                    </Hint>
                   </div>
                 </motion.div>
               )}
@@ -413,6 +609,51 @@ const CommunityPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Скрытые инпуты для загрузки изображений */}
+      <input
+        type="file"
+        ref={avatarInputRef}
+        onChange={handleAvatarUpload}
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={bannerInputRef}
+        onChange={handleBannerUpload}
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        className="hidden"
+      />
+
+      {/* Модалки обрезки изображений */}
+      {cropAvatarFile && (
+        <ImageCropModal
+          isOpen={isAvatarCropModalOpen}
+          onClose={() => {
+            setIsAvatarCropModalOpen(false);
+            setCropAvatarFile(null);
+          }}
+          imageFile={cropAvatarFile}
+          aspectRatio={1}
+          title={t("community.cropAvatarTitle")}
+          onApply={handleApplyCroppedAvatar}
+        />
+      )}
+
+      {cropBannerFile && (
+        <ImageCropModal
+          isOpen={isBannerCropModalOpen}
+          onClose={() => {
+            setIsBannerCropModalOpen(false);
+            setCropBannerFile(null);
+          }}
+          imageFile={cropBannerFile}
+          aspectRatio={3 / 1}
+          title={t("community.cropBannerTitle")}
+          onApply={handleApplyCroppedBanner}
+        />
+      )}
     </div>
   );
 };

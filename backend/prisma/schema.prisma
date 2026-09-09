@@ -71,6 +71,8 @@ model Community {
   description String
   topic       String
   isPrivate   Boolean  @default(false)
+  avatarUrl   String?
+  bannerUrl   String?
   creatorId   String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

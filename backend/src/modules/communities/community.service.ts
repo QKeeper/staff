@@ -1,5 +1,12 @@
+import path from "node:path";
+import fs from "node:fs/promises";
 import { prisma, Prisma } from "../../db/prisma.js";
-import { ConflictError, NotFoundError } from "../../common/errors/appError.js";
+import {
+  BadRequestError,
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+} from "../../common/errors/appError.js";
 import { ROLE_DEFAULT_PERMISSIONS } from "../../common/permissions/permissions.js";
 import {
   CreateCommunityInput,
@@ -118,6 +125,9 @@ export class CommunityService {
       description: community.description,
       topic: community.topic,
       isPrivate: community.isPrivate,
+      avatarUrl: community.avatarUrl,
+      bannerUrl: community.bannerUrl,
+      creatorId: community.creatorId,
       createdAt: community.createdAt,
       creator: community.creator,
       membersCount: community._count.members,
@@ -168,6 +178,8 @@ export class CommunityService {
       description: comm.description,
       topic: comm.topic,
       isPrivate: comm.isPrivate,
+      avatarUrl: comm.avatarUrl,
+      bannerUrl: comm.bannerUrl,
       createdAt: comm.createdAt,
       membersCount: comm._count.members,
     }));
@@ -204,6 +216,8 @@ export class CommunityService {
       displayName: m.community.displayName,
       description: m.community.description,
       topic: m.community.topic,
+      avatarUrl: m.community.avatarUrl,
+      bannerUrl: m.community.bannerUrl,
       role: m.role,
       permissions: m.permissions,
       membersCount: m.community._count.members,
@@ -264,5 +278,132 @@ export class CommunityService {
     });
 
     return { isFollowing: false };
+  }
+
+  private static async saveImage(
+    entityId: string,
+    subfolder: "community-avatars" | "community-banners",
+    imageData: string,
+  ): Promise<string> {
+    const match = imageData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+    if (!match) {
+      if (imageData.startsWith("/uploads/")) {
+        return imageData;
+      }
+      throw new BadRequestError("Invalid image data format");
+    }
+
+    let ext = match[1].toLowerCase();
+    if (ext === "jpeg") ext = "jpg";
+    if (ext === "svg+xml") ext = "svg";
+
+    const base64Content = match[2];
+    const buffer = Buffer.from(base64Content, "base64");
+
+    if (buffer.length > 10 * 1024 * 1024) {
+      throw new BadRequestError("Image size must not exceed 10MB");
+    }
+
+    const dir = path.resolve(process.cwd(), "uploads", subfolder);
+    await fs.mkdir(dir, { recursive: true });
+
+    const fileName = `${entityId}-${Date.now()}.${ext}`;
+    const filePath = path.join(dir, fileName);
+    await fs.writeFile(filePath, buffer);
+
+    return `/uploads/${subfolder}/${fileName}`;
+  }
+
+  private static async verifyCanEditCommunity(
+    communityName: string,
+    userId: string,
+    isGlobalAdmin: boolean = false,
+  ) {
+    const community = await prisma.community.findFirst({
+      where: {
+        name: {
+          equals: communityName,
+          mode: "insensitive",
+        },
+      },
+    });
+
+    if (!community) {
+      throw new NotFoundError(`Community '${communityName}' not found`);
+    }
+
+    if (isGlobalAdmin || community.creatorId === userId) {
+      return community;
+    }
+
+    const membership = await prisma.communityMember.findUnique({
+      where: {
+        userId_communityId: {
+          userId,
+          communityId: community.id,
+        },
+      },
+    });
+
+    if (
+      !membership ||
+      (membership.role !== "OWNER" && membership.role !== "ADMIN")
+    ) {
+      throw new ForbiddenError(
+        "You do not have permission to edit this community",
+      );
+    }
+
+    return community;
+  }
+
+  static async updateAvatar(
+    communityName: string,
+    userId: string,
+    imageData: string,
+    isGlobalAdmin: boolean = false,
+  ) {
+    const community = await this.verifyCanEditCommunity(
+      communityName,
+      userId,
+      isGlobalAdmin,
+    );
+    const avatarUrl = await this.saveImage(
+      community.id,
+      "community-avatars",
+      imageData,
+    );
+
+    const updated = await prisma.community.update({
+      where: { id: community.id },
+      data: { avatarUrl },
+    });
+
+    return updated;
+  }
+
+  static async updateBanner(
+    communityName: string,
+    userId: string,
+    imageData: string,
+    isGlobalAdmin: boolean = false,
+  ) {
+    const community = await this.verifyCanEditCommunity(
+      communityName,
+      userId,
+      isGlobalAdmin,
+    );
+    const bannerUrl = await this.saveImage(
+      community.id,
+      "community-banners",
+      imageData,
+    );
+
+    const updated = await prisma.community.update({
+      where: { id: community.id },
+      data: { bannerUrl },
+    });
+
+    return updated;
   }
 }

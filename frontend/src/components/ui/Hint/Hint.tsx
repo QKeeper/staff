@@ -1,5 +1,5 @@
 import { cn } from "@/utils/cn";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export type HintPosition =
   "top" | "bottom" | "left" | "right" | "top-right" | "top-left";
@@ -8,8 +8,10 @@ export interface HintProps {
   content?: ReactNode;
   children: ReactNode;
   className?: string;
+  contentClassName?: string;
   position?: HintPosition;
   disabled?: boolean;
+  delay?: number;
 }
 
 const positionClasses: Record<HintPosition, string> = {
@@ -25,10 +27,52 @@ const Hint = ({
   content,
   children,
   className,
-  position = "top-right",
+  contentClassName,
+  position = "top",
   disabled,
+  delay = 400,
 }: HintProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const show = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    if (delay <= 0) {
+      setIsVisible(true);
+    } else {
+      timeoutRef.current = setTimeout(() => {
+        setIsVisible(true);
+      }, delay);
+    }
+  };
+
+  const hide = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsVisible(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (disabled) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setIsVisible(false);
+    }
+  }, [disabled]);
 
   if (disabled || !content) {
     return <>{children}</>;
@@ -37,15 +81,19 @@ const Hint = ({
   return (
     <div
       className={cn("relative inline-flex", className)}
-      onMouseEnter={() => setIsVisible(true)}
-      onMouseLeave={() => setIsVisible(false)}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocus={show}
+      onBlur={hide}
     >
       {children}
       {isVisible && (
         <div
+          role="tooltip"
           className={cn(
-            "pointer-events-none absolute z-50 max-w-xs min-w-48 rounded-md border border-gray-700 bg-gray-800 p-2.5 text-xs text-gray-200 shadow-xl select-none",
+            "pointer-events-none absolute z-50 rounded-md border border-gray-700 bg-gray-800 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-gray-200 shadow-xl select-none",
             positionClasses[position],
+            contentClassName,
           )}
         >
           {content}

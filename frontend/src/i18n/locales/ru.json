@@ -76,7 +76,10 @@
     "following": "Вы подписаны",
     "unfollow": "Отписаться",
     "followers": "Подписчики",
-    "followingCount": "Подписки"
+    "followingCount": "Подписки",
+    "notifyOn": "Включить уведомления",
+    "notifyOff": "Отключить уведомления",
+    "notificationsEnabled": "Уведомления включены"
   },
   "sidebar": {
     "home": "Главная",
@@ -214,7 +217,13 @@
     "createFirstPost": "Создать первый пост",
     "notifyOn": "Включить уведомления",
     "notifyOff": "Отключить уведомления",
-    "notificationsEnabled": "Уведомления включены"
+    "notificationsEnabled": "Уведомления включены",
+    "changeAvatar": "Изменить аватар",
+    "changeBanner": "Изменить баннер",
+    "cropAvatarTitle": "Настройка аватара сообщества",
+    "cropBannerTitle": "Настройка баннера сообщества",
+    "fileTooLarge": "Размер файла не должен превышать 10 МБ",
+    "uploadError": "Ошибка загрузки изображения"
   },
   "post": {
     "upvote": "Повысить рейтинг",

@@ -107,6 +107,94 @@ export const communitiesApiSlice = apiSlice.injectEndpoints({
         }
       },
     }),
+    updateCommunityAvatar: build.mutation<
+      { community: Community },
+      { name: string; image: string }
+    >({
+      query: ({ name, image }) => ({
+        url: `/communities/${encodeURIComponent(name)}/avatar`,
+        method: "PATCH",
+        body: { image },
+      }),
+      async onQueryStarted({ name, image }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          communitiesApiSlice.util.updateQueryData(
+            "getCommunityByName",
+            name,
+            (draft) => {
+              if (draft) {
+                draft.avatarUrl = image;
+              }
+            },
+          ),
+        );
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(
+            communitiesApiSlice.util.updateQueryData(
+              "getCommunityByName",
+              name,
+              (draft) => {
+                if (draft) {
+                  draft.avatarUrl = data.community.avatarUrl;
+                }
+              },
+            ),
+          );
+        } catch {
+          patchResult.undo();
+        }
+      },
+      invalidatesTags: (_result, _error, { name }) => [
+        { type: "Community", id: name.toLowerCase() },
+        "MyCommunities",
+        { type: "Community", id: "LIST" },
+      ],
+    }),
+    updateCommunityBanner: build.mutation<
+      { community: Community },
+      { name: string; image: string }
+    >({
+      query: ({ name, image }) => ({
+        url: `/communities/${encodeURIComponent(name)}/banner`,
+        method: "PATCH",
+        body: { image },
+      }),
+      async onQueryStarted({ name, image }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          communitiesApiSlice.util.updateQueryData(
+            "getCommunityByName",
+            name,
+            (draft) => {
+              if (draft) {
+                draft.bannerUrl = image;
+              }
+            },
+          ),
+        );
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(
+            communitiesApiSlice.util.updateQueryData(
+              "getCommunityByName",
+              name,
+              (draft) => {
+                if (draft) {
+                  draft.bannerUrl = data.community.bannerUrl;
+                }
+              },
+            ),
+          );
+        } catch {
+          patchResult.undo();
+        }
+      },
+      invalidatesTags: (_result, _error, { name }) => [
+        { type: "Community", id: name.toLowerCase() },
+        "MyCommunities",
+        { type: "Community", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -117,4 +205,6 @@ export const {
   useCreateCommunityMutation,
   useFollowCommunityMutation,
   useUnfollowCommunityMutation,
+  useUpdateCommunityAvatarMutation,
+  useUpdateCommunityBannerMutation,
 } = communitiesApiSlice;

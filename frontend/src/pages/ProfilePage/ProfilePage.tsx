@@ -12,6 +12,7 @@ import {
   Sparkles,
   Camera,
   AlertCircle,
+  Bell,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { store } from "@/app/store";
@@ -33,6 +34,7 @@ import { PostCard } from "@/components/PostCard";
 import { UserCommentCard } from "@/components/UserCommentCard";
 import { ImageCropModal } from "@/components/ImageCropModal";
 import { Button } from "@/components/ui/Button";
+import { Hint } from "@/components/ui/Hint";
 import { formatRegistrationDate } from "@/utils/formatPlural";
 import { cn } from "@/utils/cn";
 
@@ -450,29 +452,38 @@ const ProfilePage = () => {
           {/* Справа: Кнопка подписки (для чужих профилей) */}
           {!isOwnProfile && (
             <div className="flex shrink-0 items-center gap-2.5">
-              {profileUser.isFollowing ? (
+              <Hint
+                content={
+                  profileUser.isFollowing
+                    ? t("profile.notificationsEnabled")
+                    : t("profile.notifyOn")
+                }
+                position="top-right"
+              >
                 <Button
-                  variant="outline"
+                  variant={profileUser.isFollowing ? "accent" : "solid"}
                   size="medium"
-                  className="group hover:border-red-500/50 hover:bg-red-950/20 hover:text-red-400"
+                  aria-label={
+                    profileUser.isFollowing
+                      ? t("profile.notificationsEnabled")
+                      : t("profile.notifyOn")
+                  }
+                  className={cn(
+                    "size-10 min-w-10 rounded p-0 transition-colors",
+                    profileUser.isFollowing
+                      ? "border-transparent bg-white text-gray-950 hover:border-transparent hover:bg-white hover:text-gray-950"
+                      : "text-gray-300 hover:text-white",
+                  )}
                   onClick={handleToggleFollow}
                 >
-                  <span className="group-hover:hidden">
-                    {t("profile.following")}
-                  </span>
-                  <span className="hidden group-hover:inline">
-                    {t("profile.unfollow")}
-                  </span>
+                  <Bell
+                    className={cn(
+                      "size-4",
+                      profileUser.isFollowing && "fill-current",
+                    )}
+                  />
                 </Button>
-              ) : (
-                <Button
-                  variant="accent"
-                  size="medium"
-                  onClick={handleToggleFollow}
-                >
-                  {t("profile.follow")}
-                </Button>
-              )}
+              </Hint>
             </div>
           )}
         </div>
@@ -675,29 +686,38 @@ const ProfilePage = () => {
                       </div>
                     </div>
                     {!isOwnProfile && (
-                      <Button
-                        variant={profileUser.isFollowing ? "outline" : "accent"}
-                        size="small"
-                        className={cn(
-                          "shrink-0",
-                          profileUser.isFollowing &&
-                            "group hover:border-red-500/50 hover:bg-red-950/20 hover:text-red-400",
-                        )}
-                        onClick={handleToggleFollow}
+                      <Hint
+                        content={
+                          profileUser.isFollowing
+                            ? t("profile.notificationsEnabled")
+                            : t("profile.notifyOn")
+                        }
+                        position="top-right"
                       >
-                        {profileUser.isFollowing ? (
-                          <>
-                            <span className="group-hover:hidden">
-                              {t("profile.following")}
-                            </span>
-                            <span className="hidden group-hover:inline">
-                              {t("profile.unfollow")}
-                            </span>
-                          </>
-                        ) : (
-                          t("profile.follow")
-                        )}
-                      </Button>
+                        <Button
+                          variant={profileUser.isFollowing ? "accent" : "ghost"}
+                          size="small"
+                          aria-label={
+                            profileUser.isFollowing
+                              ? t("profile.notificationsEnabled")
+                              : t("profile.notifyOn")
+                          }
+                          className={cn(
+                            "size-8 min-w-8 shrink-0 rounded p-0 transition-colors",
+                            profileUser.isFollowing
+                              ? "border-transparent bg-white text-gray-950 hover:bg-white hover:text-gray-950"
+                              : "text-gray-400 hover:bg-gray-800 hover:text-gray-200",
+                          )}
+                          onClick={handleToggleFollow}
+                        >
+                          <Bell
+                            className={cn(
+                              "size-4",
+                              profileUser.isFollowing && "fill-current",
+                            )}
+                          />
+                        </Button>
+                      </Hint>
                     )}
                   </div>
                 </motion.div>

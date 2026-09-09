@@ -55,4 +55,20 @@ router.delete(
   CommunityController.unfollow,
 );
 
+// 7. Update community avatar
+router.patch(
+  "/:name/avatar",
+  requireAuth,
+  validateRequest({ params: getCommunityParamsSchema }),
+  CommunityController.updateAvatar,
+);
+
+// 8. Update community banner
+router.patch(
+  "/:name/banner",
+  requireAuth,
+  validateRequest({ params: getCommunityParamsSchema }),
+  CommunityController.updateBanner,
+);
+
 export { router as communityRoutes };

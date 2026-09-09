@@ -76,7 +76,10 @@
     "following": "Following",
     "unfollow": "Unfollow",
     "followers": "Followers",
-    "followingCount": "Following"
+    "followingCount": "Following",
+    "notifyOn": "Enable notifications",
+    "notifyOff": "Disable notifications",
+    "notificationsEnabled": "Notifications enabled"
   },
   "sidebar": {
     "home": "Home",
@@ -214,7 +217,13 @@
     "createFirstPost": "Create the first post",
     "notifyOn": "Enable notifications",
     "notifyOff": "Disable notifications",
-    "notificationsEnabled": "Notifications enabled"
+    "notificationsEnabled": "Notifications enabled",
+    "changeAvatar": "Change avatar",
+    "changeBanner": "Change banner",
+    "cropAvatarTitle": "Edit Community Avatar",
+    "cropBannerTitle": "Edit Community Banner",
+    "fileTooLarge": "File size must not exceed 10 MB",
+    "uploadError": "Failed to upload image"
   },
   "post": {
     "upvote": "Upvote",
