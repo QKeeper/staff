@@ -6,7 +6,9 @@
     "dev:frontend": "pnpm --filter ./frontend dev",
     "dev:backend": "pnpm --filter ./backend dev",
     "build": "pnpm -r build",
-    "format": "prettier --write ."
+    "format": "prettier --write --cache --log-level warn .",
+    "typecheck": "pnpm -r exec tsc --noEmit",
+    "validate": "pnpm format && pnpm typecheck && pnpm build"
   },
   "devDependencies": {
     "@prisma/config": "^7.10.0",
