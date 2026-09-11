@@ -21,4 +21,5 @@ jobs:
             pnpm --filter @staff/backend exec prisma generate
             pnpm --filter @staff/backend exec prisma migrate deploy
             pnpm -r build
-            pm2 restart staff-backend
+            pm2 reload staff-backend || pm2 start backend/dist/server.js --name "staff-backend"
+
