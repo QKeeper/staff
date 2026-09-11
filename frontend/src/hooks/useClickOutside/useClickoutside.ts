@@ -8,6 +8,8 @@ const useClickOutside = (refs: Ref | Ref[], cb: () => void) => {
       const target = event.target as Node | null;
       if (!target) return;
 
+      if (!target.isConnected) return;
+
       const refList = Array.isArray(refs) ? refs : [refs];
       const isInside = refList.some((ref) => ref.current?.contains(target));
 

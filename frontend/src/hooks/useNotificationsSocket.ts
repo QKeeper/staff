@@ -17,8 +17,14 @@ export function useNotificationsSocket() {
 
     if (!user) {
       if (socketRef.current) {
-        socketRef.current.close();
+        const ws = socketRef.current;
         socketRef.current = null;
+        if (ws.readyState === WebSocket.CONNECTING) {
+          ws.onopen = () => ws.close(1000, "User logged out");
+          ws.onerror = () => {};
+        } else if (ws.readyState === WebSocket.OPEN) {
+          ws.close(1000, "User logged out");
+        }
       }
       return;
     }
@@ -97,7 +103,9 @@ export function useNotificationsSocket() {
       };
 
       ws.onerror = () => {
-        ws.close();
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close();
+        }
       };
     }
 
@@ -109,8 +117,14 @@ export function useNotificationsSocket() {
       if (reconnectTimeoutRef.current)
         clearTimeout(reconnectTimeoutRef.current);
       if (socketRef.current) {
-        socketRef.current.close(1000);
+        const ws = socketRef.current;
         socketRef.current = null;
+        if (ws.readyState === WebSocket.CONNECTING) {
+          ws.onopen = () => ws.close(1000, "Component unmounted");
+          ws.onerror = () => {};
+        } else if (ws.readyState === WebSocket.OPEN) {
+          ws.close(1000, "Component unmounted");
+        }
       }
     };
   }, [user, dispatch]);

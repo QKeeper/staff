@@ -115,21 +115,21 @@ const Hint = ({
     }
   }, [disabled]);
 
-  if (disabled || !content) {
+  if (!content) {
     return <>{children}</>;
   }
 
   return (
     <div
       className={cn("relative inline-flex", className)}
-      onMouseEnter={show}
+      onMouseEnter={disabled ? undefined : show}
       onMouseLeave={hide}
-      onFocus={show}
+      onFocus={disabled ? undefined : show}
       onBlur={hide}
     >
       {children}
       <AnimatePresence>
-        {isVisible && (
+        {!disabled && isVisible && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
