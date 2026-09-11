@@ -287,8 +287,11 @@ export class CommunityService {
   ): Promise<string> {
     const match = imageData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
     if (!match) {
-      if (imageData.startsWith("/uploads/")) {
+      if (imageData.startsWith("/api/uploads/")) {
         return imageData;
+      }
+      if (imageData.startsWith("/uploads/")) {
+        return `/api${imageData}`;
       }
       throw new BadRequestError("Invalid image data format");
     }
@@ -311,7 +314,7 @@ export class CommunityService {
     const filePath = path.join(dir, fileName);
     await fs.writeFile(filePath, buffer);
 
-    return `/uploads/${subfolder}/${fileName}`;
+    return `/api/uploads/${subfolder}/${fileName}`;
   }
 
   private static async verifyCanEditCommunity(

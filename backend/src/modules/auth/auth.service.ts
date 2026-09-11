@@ -415,8 +415,11 @@ export class AuthService {
 
     const match = imageData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
     if (!match) {
-      if (imageData.startsWith("/uploads/")) {
+      if (imageData.startsWith("/api/uploads/")) {
         return imageData;
+      }
+      if (imageData.startsWith("/uploads/")) {
+        return `/api${imageData}`;
       }
       throw new BadRequestError("Invalid image data format");
     }
@@ -439,7 +442,7 @@ export class AuthService {
     const filePath = path.join(dir, fileName);
     await fs.writeFile(filePath, buffer);
 
-    return `/uploads/${subfolder}/${fileName}`;
+    return `/api/uploads/${subfolder}/${fileName}`;
   }
 
   static async updateAvatar(userId: string, imageData: string) {

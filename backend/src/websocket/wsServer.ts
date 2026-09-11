@@ -46,7 +46,21 @@ function extractTokenFromRequest(req: IncomingMessage): string | null {
 }
 
 export function initWebSocketServer(server: Server): WebSocketServer {
-  wss = new WebSocketServer({ server, path: "/ws" });
+  wss = new WebSocketServer({ noServer: true });
+
+  server.on("upgrade", (req: IncomingMessage, socket, head) => {
+    const url = new URL(
+      req.url || "",
+      `http://${req.headers.host || "localhost"}`,
+    );
+    if (url.pathname === "/api/ws" || url.pathname === "/ws") {
+      wss!.handleUpgrade(req, socket, head, (ws) => {
+        wss!.emit("connection", ws, req);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
 
   wss.on("connection", (ws: CustomWebSocket, req: IncomingMessage) => {
     const token = extractTokenFromRequest(req);

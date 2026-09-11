@@ -32,7 +32,10 @@ export const createApp = (): Express => {
   app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 
   // Static uploads directory
-  app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+  app.use(
+    "/api/uploads",
+    express.static(path.resolve(process.cwd(), "uploads")),
+  );
 
   // Mock delay in development mode (500ms)
   if (env.NODE_ENV === "development") {
@@ -42,7 +45,7 @@ export const createApp = (): Express => {
   }
 
   // Health check
-  app.get("/health", (_req, res) => {
+  app.get(["/api/health", "/api/v1/health"], (_req, res) => {
     sendSuccess(res, { status: "ok", timestamp: new Date().toISOString() });
   });
 

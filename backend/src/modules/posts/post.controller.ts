@@ -20,7 +20,7 @@ export class PostController {
     const uploaded = files.map((file) => {
       const type = getMediaType(file.mimetype, file.filename);
       return {
-        url: `/uploads/posts/${file.filename}`,
+        url: `/api/uploads/posts/${file.filename}`,
         type,
         name: file.originalname,
         size: file.size,
