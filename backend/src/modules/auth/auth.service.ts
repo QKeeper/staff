@@ -11,6 +11,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../../common/errors/appError.js";
+import { deleteLocalUpload } from "../../common/utils/fileStorage.js";
 import { LoginInput, RegisterInput } from "./auth.schemas.js";
 
 // 1 Year in milliseconds (365 days)
@@ -446,6 +447,11 @@ export class AuthService {
   }
 
   static async updateAvatar(userId: string, imageData: string) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatarUrl: true },
+    });
+
     const avatarUrl = await this.saveImage(userId, "avatars", imageData);
     const user = await prisma.user.update({
       where: { id: userId },
@@ -462,10 +468,20 @@ export class AuthService {
         createdAt: true,
       },
     });
+
+    if (existingUser?.avatarUrl && existingUser.avatarUrl !== avatarUrl) {
+      await deleteLocalUpload(existingUser.avatarUrl);
+    }
+
     return user;
   }
 
   static async updateBanner(userId: string, imageData: string) {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { bannerUrl: true },
+    });
+
     const bannerUrl = await this.saveImage(userId, "banners", imageData);
     const user = await prisma.user.update({
       where: { id: userId },
@@ -482,6 +498,11 @@ export class AuthService {
         createdAt: true,
       },
     });
+
+    if (existingUser?.bannerUrl && existingUser.bannerUrl !== bannerUrl) {
+      await deleteLocalUpload(existingUser.bannerUrl);
+    }
+
     return user;
   }
 }

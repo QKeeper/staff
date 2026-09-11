@@ -2,7 +2,7 @@
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
@@ -22,4 +22,3 @@ jobs:
             pnpm --filter @staff/backend exec prisma migrate deploy
             pnpm -r build
             pm2 reload staff-backend || pm2 start backend/dist/server.js --name "staff-backend"
-

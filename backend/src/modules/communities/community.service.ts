@@ -8,6 +8,7 @@ import {
   NotFoundError,
 } from "../../common/errors/appError.js";
 import { ROLE_DEFAULT_PERMISSIONS } from "../../common/permissions/permissions.js";
+import { deleteLocalUpload } from "../../common/utils/fileStorage.js";
 import {
   CreateCommunityInput,
   ListCommunitiesQuery,
@@ -382,6 +383,10 @@ export class CommunityService {
       data: { avatarUrl },
     });
 
+    if (community.avatarUrl && community.avatarUrl !== avatarUrl) {
+      await deleteLocalUpload(community.avatarUrl);
+    }
+
     return updated;
   }
 
@@ -406,6 +411,10 @@ export class CommunityService {
       where: { id: community.id },
       data: { bannerUrl },
     });
+
+    if (community.bannerUrl && community.bannerUrl !== bannerUrl) {
+      await deleteLocalUpload(community.bannerUrl);
+    }
 
     return updated;
   }
