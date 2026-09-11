@@ -6,9 +6,10 @@ datasource db {
   provider = "postgresql"
 }
 
-enum GlobalRole {
+enum Role {
   USER
   ADMIN
+  MODERATOR
 }
 
 enum CommunityRole {
@@ -23,7 +24,7 @@ model User {
   username     String      @unique
   email        String      @unique
   passwordHash String
-  globalRole   GlobalRole  @default(USER)
+  role         Role        @default(USER)
   avatarUrl    String?
   bannerUrl    String?
   bio          String?

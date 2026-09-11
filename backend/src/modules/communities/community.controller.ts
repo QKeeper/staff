@@ -59,7 +59,7 @@ export class CommunityController {
       name,
       req.user!.id,
       image,
-      req.user!.globalRole === "ADMIN",
+      req.user!.role === "ADMIN",
     );
     sendSuccess(res, { community });
   }
@@ -75,7 +75,7 @@ export class CommunityController {
       name,
       req.user!.id,
       image,
-      req.user!.globalRole === "ADMIN",
+      req.user!.role === "ADMIN",
     );
     sendSuccess(res, { community });
   }

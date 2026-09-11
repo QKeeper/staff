@@ -11,7 +11,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "cleanup:uploads": "tsx src/scripts/cleanupOrphanedUploads.ts"
+    "cleanup:uploads": "tsx src/scripts/cleanupOrphanedUploads.ts",
+    "set-role": "tsx src/scripts/setRole.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",

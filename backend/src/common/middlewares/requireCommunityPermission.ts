@@ -48,7 +48,7 @@ export const requireCommunityPermission =
       },
     });
 
-    const isGlobalAdmin = req.user.globalRole === "ADMIN";
+    const isGlobalAdmin = req.user.role === "ADMIN";
     const allowed = hasCommunityPermission(
       membership,
       permission,

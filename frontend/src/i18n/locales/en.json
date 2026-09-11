@@ -270,5 +270,11 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "moderator": "Moderator",
+    "adminHint": "Lead Administrator",
+    "moderatorHint": "Service Moderator"
   }
 }

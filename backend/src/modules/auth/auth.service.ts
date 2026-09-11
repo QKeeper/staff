@@ -22,7 +22,7 @@ interface TokenPayload {
   id: string;
   username: string;
   email: string;
-  globalRole: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "MODERATOR";
 }
 
 export class AuthService {
@@ -32,7 +32,8 @@ export class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
-        globalRole: user.globalRole,
+        role: user.role,
+        globalRole: user.role,
       },
       env.JWT_ACCESS_SECRET,
       { expiresIn: ACCESS_TOKEN_EXPIRES_IN },
@@ -80,7 +81,7 @@ export class AuthService {
         username: true,
         email: true,
         displayName: true,
-        globalRole: true,
+        role: true,
         avatarUrl: true,
         bannerUrl: true,
         bio: true,
@@ -151,7 +152,7 @@ export class AuthService {
       id: user.id,
       username: user.username,
       email: user.email,
-      globalRole: user.globalRole,
+      role: user.role,
     };
 
     const accessToken = this.generateAccessToken(userPayload);
@@ -162,7 +163,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         displayName: user.displayName,
-        globalRole: user.globalRole,
+        role: user.role,
         avatarUrl: user.avatarUrl,
         bannerUrl: user.bannerUrl,
         bio: user.bio,
@@ -209,7 +210,7 @@ export class AuthService {
       id: session.user.id,
       username: session.user.username,
       email: session.user.email,
-      globalRole: session.user.globalRole,
+      role: session.user.role,
     };
 
     const accessToken = this.generateAccessToken(userPayload);
@@ -240,7 +241,7 @@ export class AuthService {
         username: true,
         email: true,
         displayName: true,
-        globalRole: true,
+        role: true,
         avatarUrl: true,
         bannerUrl: true,
         bio: true,
@@ -275,6 +276,7 @@ export class AuthService {
         id: true,
         username: true,
         displayName: true,
+        role: true,
         avatarUrl: true,
         bannerUrl: true,
         bio: true,
@@ -461,7 +463,7 @@ export class AuthService {
         username: true,
         email: true,
         displayName: true,
-        globalRole: true,
+        role: true,
         avatarUrl: true,
         bannerUrl: true,
         bio: true,
@@ -491,7 +493,7 @@ export class AuthService {
         username: true,
         email: true,
         displayName: true,
-        globalRole: true,
+        role: true,
         avatarUrl: true,
         bannerUrl: true,
         bio: true,

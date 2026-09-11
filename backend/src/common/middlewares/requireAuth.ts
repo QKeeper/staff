@@ -7,7 +7,7 @@ export interface AuthenticatedUser {
   id: string;
   username: string;
   email: string;
-  globalRole: "USER" | "ADMIN";
+  role: "USER" | "ADMIN" | "MODERATOR";
 }
 
 declare global {
@@ -44,12 +44,12 @@ export const requireAuth = (
     const payload = jwt.verify(
       token,
       env.JWT_ACCESS_SECRET,
-    ) as AuthenticatedUser;
+    ) as AuthenticatedUser & { globalRole?: "USER" | "ADMIN" | "MODERATOR" };
     req.user = {
       id: payload.id,
       username: payload.username,
       email: payload.email,
-      globalRole: payload.globalRole,
+      role: payload.role || payload.globalRole || "USER",
     };
     next();
   } catch (_error) {
@@ -71,12 +71,12 @@ export const optionalAuth = (
     const payload = jwt.verify(
       token,
       env.JWT_ACCESS_SECRET,
-    ) as AuthenticatedUser;
+    ) as AuthenticatedUser & { globalRole?: "USER" | "ADMIN" | "MODERATOR" };
     req.user = {
       id: payload.id,
       username: payload.username,
       email: payload.email,
-      globalRole: payload.globalRole,
+      role: payload.role || payload.globalRole || "USER",
     };
   } catch {
     // Ignore invalid tokens for optional auth

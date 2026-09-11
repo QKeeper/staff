@@ -118,12 +118,15 @@ async function apiFetch<T>(
   return json.data as T;
 }
 
+export type Role = "USER" | "ADMIN" | "MODERATOR";
+
 export interface User {
   id: string;
   username: string;
   displayName?: string | null;
   email: string;
-  globalRole: "USER" | "ADMIN";
+  role: Role;
+  globalRole?: Role;
   avatarUrl?: string | null;
   bannerUrl?: string | null;
   bio?: string | null;
@@ -140,6 +143,8 @@ export interface UserProfile {
   id: string;
   username: string;
   displayName?: string | null;
+  role?: Role;
+  globalRole?: Role;
   avatarUrl?: string | null;
   bannerUrl?: string | null;
   bio?: string | null;

@@ -105,7 +105,7 @@ const CommunityPage = () => {
     (community.creatorId === user.id ||
       community.currentUserMembership?.role === "OWNER" ||
       community.currentUserMembership?.role === "ADMIN" ||
-      user.globalRole === "ADMIN"),
+      user.role === "ADMIN"),
   );
 
   const [optimisticAvatarUrl, setOptimisticAvatarUrl] = useState<string | null>(

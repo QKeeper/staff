@@ -13,6 +13,7 @@ import {
   Camera,
   AlertCircle,
   Bell,
+  BadgeCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { store } from "@/app/store";
@@ -440,9 +441,32 @@ const ProfilePage = () => {
             </div>
 
             <div className="min-w-0">
-              <h1 className="truncate text-2xl font-bold text-gray-100 sm:text-3xl">
-                {displayName}
-              </h1>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="truncate text-2xl font-bold text-gray-100 sm:text-3xl">
+                  {displayName}
+                </h1>
+                {profileUser.role && profileUser.role !== "USER" && (
+                  <Hint
+                    content={
+                      profileUser.role === "ADMIN"
+                        ? t("roles.adminHint")
+                        : t("roles.moderatorHint")
+                    }
+                    position="top"
+                  >
+                    <span
+                      className="inline-flex shrink-0 cursor-default items-center justify-center"
+                      aria-label={
+                        profileUser.role === "ADMIN"
+                          ? t("roles.adminHint")
+                          : t("roles.moderatorHint")
+                      }
+                    >
+                      <BadgeCheck className="size-5 sm:size-6 [&>path:first-child]:fill-white [&>path:first-child]:stroke-white [&>path:last-child]:fill-none [&>path:last-child]:stroke-gray-950" />
+                    </span>
+                  </Hint>
+                )}
+              </div>
               <span className="text-sm font-medium text-gray-400">
                 u/{profileUser.username}
               </span>

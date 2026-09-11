@@ -270,5 +270,11 @@
     "minutesAgo": "{{count}} мин. назад",
     "hoursAgo": "{{count}} ч. назад",
     "daysAgo": "{{count}} дн. назад"
+  },
+  "roles": {
+    "admin": "Администратор",
+    "moderator": "Модератор",
+    "adminHint": "Главный администратор",
+    "moderatorHint": "Модератор сервиса"
   }
 }

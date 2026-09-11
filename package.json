@@ -8,7 +8,8 @@
     "build": "pnpm -r build",
     "format": "prettier --write --cache --log-level warn .",
     "typecheck": "pnpm -r exec tsc --noEmit",
-    "validate": "pnpm format && pnpm typecheck && pnpm build"
+    "validate": "pnpm format && pnpm typecheck && pnpm build",
+    "set-role": "pnpm --filter @staff/backend set-role"
   },
   "devDependencies": {
     "@prisma/config": "^7.10.0",
