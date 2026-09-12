@@ -60,18 +60,14 @@ export interface PostLoaderData {
   postId: string;
 }
 
-export const postLoader = async ({
-  params,
-}: LoaderFunctionArgs): Promise<PostLoaderData> => {
+export const postLoader = ({ params }: LoaderFunctionArgs): PostLoaderData => {
   const postId = params.postId || "";
-  if (!postId) {
-    return { postId: "" };
+  if (postId) {
+    void store.dispatch(postsApiSlice.endpoints.getPostById.initiate(postId));
+    void store.dispatch(
+      postsApiSlice.endpoints.listPostComments.initiate(postId),
+    );
   }
-
-  await Promise.all([
-    store.dispatch(postsApiSlice.endpoints.getPostById.initiate(postId)),
-    store.dispatch(postsApiSlice.endpoints.listPostComments.initiate(postId)),
-  ]);
 
   return { postId };
 };

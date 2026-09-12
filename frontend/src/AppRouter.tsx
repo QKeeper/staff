@@ -1,20 +1,17 @@
 import { createBrowserRouter, redirect, RouterProvider } from "react-router";
-import { AppLayout, layoutLoader } from "./AppLayout";
-import { AuthLoadingScreen } from "@/components/layout/AuthLoadingScreen";
+import { AppLayout } from "./AppLayout";
 import { HomePage, homeLoader } from "@/pages/HomePage";
 import { ProfilePage, profileLoader } from "@/pages/ProfilePage";
 import { CommunityPage, communityLoader } from "@/pages/CommunityPage";
 import { ExplorePage } from "@/pages/ExplorePage";
 import { SettingsPage } from "@/pages/SettingsPage";
-import { getAuthUser } from "@/context/AuthContext";
+import { getCachedUser } from "@/context/AuthContext";
 
 import { CreatePostPage } from "@/pages/CreatePostPage";
 import { PostPage, postLoader } from "@/pages/PostPage";
 
-const RootHydrateFallback = () => <AuthLoadingScreen isLoading={true} />;
-
-const profileRedirectLoader = async () => {
-  const user = await getAuthUser();
+const profileRedirectLoader = () => {
+  const user = getCachedUser();
   if (user?.username) {
     return redirect(`/u/${user.username}`);
   }
@@ -25,8 +22,6 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <AppLayout />,
-    loader: layoutLoader,
-    HydrateFallback: RootHydrateFallback,
     children: [
       {
         index: true,

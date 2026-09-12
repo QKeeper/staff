@@ -38,30 +38,30 @@ import { Button } from "@/components/ui/Button";
 import { Hint } from "@/components/ui/Hint";
 import { formatRegistrationDate } from "@/utils/formatPlural";
 import { cn } from "@/utils/cn";
+import type { UserProfile } from "@/api/client";
 
 export interface ProfileLoaderData {
   username: string;
 }
 
-export const profileLoader = async ({
+export const profileLoader = ({
   params,
-}: LoaderFunctionArgs): Promise<ProfileLoaderData> => {
+}: LoaderFunctionArgs): ProfileLoaderData => {
   const username = params.username || "";
-  if (!username) {
-    return { username: "" };
-  }
-
-  // Pre-load all data into RTK Query store before completing navigation
-  await Promise.all([
-    store.dispatch(usersApiSlice.endpoints.getUserProfile.initiate(username)),
-    store.dispatch(
+  if (username) {
+    void store.dispatch(
+      usersApiSlice.endpoints.getUserProfile.initiate(username),
+    );
+    void store.dispatch(
       postsApiSlice.endpoints.getPosts.initiate({
         authorUsername: username,
         sort: "new",
       }),
-    ),
-    store.dispatch(postsApiSlice.endpoints.listUserComments.initiate(username)),
-  ]);
+    );
+    void store.dispatch(
+      postsApiSlice.endpoints.listUserComments.initiate(username),
+    );
+  }
 
   return { username };
 };
@@ -76,11 +76,24 @@ const ProfilePage = () => {
 
   const [activeTab, setActiveTab] = useState<TabType>("overview");
 
+  const isOwnProfile = Boolean(
+    user && username && user.username.toLowerCase() === username.toLowerCase(),
+  );
+
   // Read immediately from RTK Query cache hydrated by profileLoader
-  const { data: profileUserData } = useGetUserProfileQuery(username, {
-    skip: !username,
-  });
-  const profileUser = profileUserData?.user || null;
+  const { data: profileUserData, isLoading: isProfileLoading } =
+    useGetUserProfileQuery(username, {
+      skip: !username,
+    });
+  const profileUser =
+    profileUserData?.user ||
+    (isOwnProfile && user
+      ? ({
+          ...user,
+          karma: 0,
+          isFollowing: false,
+        } as unknown as UserProfile)
+      : null);
 
   const { data: posts = [] } = useGetPostsQuery(
     { authorUsername: username, sort: "new" },
@@ -116,13 +129,6 @@ const ProfilePage = () => {
     null,
   );
   const [uploadError, setUploadError] = useState<string | null>(null);
-
-  const isOwnProfile = Boolean(
-    user &&
-    profileUser &&
-    (user.id === profileUser.id ||
-      user.username.toLowerCase() === profileUser.username.toLowerCase()),
-  );
 
   const currentAvatarUrl = isOwnProfile
     ? optimisticAvatarUrl || user?.avatarUrl || profileUser?.avatarUrl || null
@@ -311,6 +317,21 @@ const ProfilePage = () => {
     );
     return postsKarma + commentsKarma;
   }, [profileUser?.karma, posts, comments]);
+
+  if (isProfileLoading && !profileUser) {
+    return (
+      <div className="flex-1 animate-pulse space-y-6 pb-16">
+        <div className="h-44 w-full rounded-xl bg-gray-900/60" />
+        <div className="flex items-end gap-4 px-4">
+          <div className="size-24 rounded-full bg-gray-800" />
+          <div className="space-y-2 pb-2">
+            <div className="h-6 w-40 rounded bg-gray-800" />
+            <div className="h-4 w-24 rounded bg-gray-900" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!profileUser) {
     return (

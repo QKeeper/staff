@@ -3,10 +3,11 @@ import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import type { MyCommunity, User } from "@/api/client";
 import { store } from "@/app/store";
-import { usersApiSlice } from "@/features/users/usersApiSlice";
 import { communitiesApiSlice } from "@/features/communities/communitiesApiSlice";
 
 import { useNotificationsSocket } from "@/hooks/useNotificationsSocket";
+
+import { getCachedUser } from "@/context/AuthContext";
 
 export interface LayoutLoaderData {
   user: User | null;
@@ -14,16 +15,13 @@ export interface LayoutLoaderData {
 }
 
 export const layoutLoader = async (): Promise<LayoutLoaderData> => {
-  const meRes = await store.dispatch(usersApiSlice.endpoints.getMe.initiate());
-  const user = meRes.data?.user ?? null;
-  let communities: MyCommunity[] = [];
+  const user = getCachedUser();
   if (user) {
-    const commRes = await store.dispatch(
+    void store.dispatch(
       communitiesApiSlice.endpoints.getMyCommunities.initiate(),
     );
-    communities = commRes.data ?? [];
   }
-  return { user, communities };
+  return { user, communities: [] };
 };
 
 function AppLayout() {

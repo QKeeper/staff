@@ -36,30 +36,21 @@ export interface CommunityLoaderData {
   communityName: string;
 }
 
-export const communityLoader = async ({
+export const communityLoader = ({
   params,
-}: LoaderFunctionArgs): Promise<CommunityLoaderData> => {
+}: LoaderFunctionArgs): CommunityLoaderData => {
   const communityName = params.communityName || "";
-  if (!communityName) {
-    return { communityName: "" };
-  }
-
-  await Promise.all([
-    store.dispatch(
-      communitiesApiSlice.endpoints.getCommunityByName.initiate(communityName, {
-        forceRefetch: true,
+  if (communityName) {
+    void store.dispatch(
+      communitiesApiSlice.endpoints.getCommunityByName.initiate(communityName),
+    );
+    void store.dispatch(
+      postsApiSlice.endpoints.getPosts.initiate({
+        communityName,
+        sort: "best",
       }),
-    ),
-    store.dispatch(
-      postsApiSlice.endpoints.getPosts.initiate(
-        {
-          communityName,
-          sort: "best",
-        },
-        { forceRefetch: true },
-      ),
-    ),
-  ]);
+    );
+  }
 
   return { communityName };
 };
