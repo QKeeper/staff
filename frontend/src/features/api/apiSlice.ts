@@ -6,35 +6,12 @@ import {
   type FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
 import type { ApiResponse } from "@/api/client";
+import { tryRefreshToken, shouldBypassRefresh } from "@/api/authRefresh";
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: "/api/v1",
   credentials: "include",
 });
-
-let refreshPromise: Promise<boolean> | null = null;
-
-async function tryRefreshToken(): Promise<boolean> {
-  if (refreshPromise) return refreshPromise;
-
-  refreshPromise = (async () => {
-    try {
-      const res = await fetch("/api/v1/auth/refresh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await res.json();
-      return Boolean(res.ok && data?.success);
-    } catch {
-      return false;
-    } finally {
-      refreshPromise = null;
-    }
-  })();
-
-  return refreshPromise;
-}
 
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
@@ -44,7 +21,11 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = await rawBaseQuery(args, api, extraOptions);
 
   const url = typeof args === "string" ? args : args.url;
-  if (result.error && result.error.status === 401 && !url.includes("/auth/")) {
+  if (
+    result.error &&
+    result.error.status === 401 &&
+    !shouldBypassRefresh(url)
+  ) {
     const refreshed = await tryRefreshToken();
     if (refreshed) {
       result = await rawBaseQuery(args, api, extraOptions);

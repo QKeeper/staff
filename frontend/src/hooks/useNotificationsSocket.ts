@@ -4,6 +4,7 @@ import type { AppDispatch } from "@/app/store";
 import { useAuth } from "@/context/AuthContext";
 import { notificationsApiSlice } from "@/features/notifications/notificationsApiSlice";
 import type { NotificationItem } from "@/api/client";
+import { tryRefreshToken } from "@/api/authRefresh";
 
 export function useNotificationsSocket() {
   const { user } = useAuth();
@@ -91,13 +92,18 @@ export function useNotificationsSocket() {
         if (pingInterval) clearInterval(pingInterval);
         socketRef.current = null;
 
+        // If unauthorized (code 4001), access token may have expired. Attempt refresh and reconnect.
+        if (event.code === 4001) {
+          tryRefreshToken().then((refreshed) => {
+            if (refreshed && isMountedRef.current && user) {
+              reconnectTimeoutRef.current = window.setTimeout(connect, 1000);
+            }
+          });
+          return;
+        }
+
         // Auto reconnect after 3 seconds if not clean shutdown
-        if (
-          isMountedRef.current &&
-          user &&
-          event.code !== 1000 &&
-          event.code !== 4001
-        ) {
+        if (isMountedRef.current && user && event.code !== 1000) {
           reconnectTimeoutRef.current = window.setTimeout(connect, 3000);
         }
       };

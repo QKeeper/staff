@@ -1,3 +1,6 @@
+import { tryRefreshToken, shouldBypassRefresh } from "./authRefresh";
+export { tryRefreshToken, shouldBypassRefresh };
+
 export interface ApiErrorDetail {
   field?: string;
   message: string;
@@ -41,30 +44,6 @@ export class ApiError extends Error {
   }
 }
 
-let refreshPromise: Promise<boolean> | null = null;
-
-async function tryRefreshToken(): Promise<boolean> {
-  if (refreshPromise) return refreshPromise;
-
-  refreshPromise = (async () => {
-    try {
-      const res = await fetch("/api/v1/auth/refresh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await res.json();
-      return Boolean(res.ok && data?.success);
-    } catch {
-      return false;
-    } finally {
-      refreshPromise = null;
-    }
-  })();
-
-  return refreshPromise;
-}
-
 async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {},
@@ -82,8 +61,8 @@ async function apiFetch<T>(
     credentials: "include", // send/receive httpOnly cookies
   });
 
-  // Automatically refresh access token on 401 if it wasn't an auth endpoint
-  if (response.status === 401 && !endpoint.includes("/auth/")) {
+  // Automatically refresh access token on 401 if it wasn't a bypassed auth endpoint
+  if (response.status === 401 && !shouldBypassRefresh(endpoint)) {
     const refreshed = await tryRefreshToken();
     if (refreshed) {
       response = await fetch(url, {

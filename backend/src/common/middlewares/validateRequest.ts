@@ -12,7 +12,7 @@ export const validateRequest =
   async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
       if (validators.body) {
-        req.body = await validators.body.parseAsync(req.body);
+        req.body = await validators.body.parseAsync(req.body ?? {});
       }
       if (validators.query) {
         const parsedQuery = await validators.query.parseAsync(req.query);

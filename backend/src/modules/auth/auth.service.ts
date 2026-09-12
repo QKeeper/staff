@@ -25,6 +25,16 @@ interface TokenPayload {
   role: "USER" | "ADMIN" | "MODERATOR";
 }
 
+interface RotatedTokenResult {
+  accessToken: string;
+  refreshToken: string;
+  refreshTokenExpiresAt: Date;
+  expiresAtTimestamp: number;
+}
+
+// In-memory grace period cache for rotated tokens to handle race conditions across tabs/concurrent requests (30s)
+const recentRotatedTokens = new Map<string, RotatedTokenResult>();
+
 export class AuthService {
   static generateAccessToken(user: TokenPayload): string {
     return jwt.sign(
@@ -180,6 +190,16 @@ export class AuthService {
       throw new UnauthorizedError("Refresh token is required");
     }
 
+    // Check grace period cache for recent rotation (handles concurrent requests across tabs/network delays)
+    const cachedRotation = recentRotatedTokens.get(refreshToken);
+    if (cachedRotation && Date.now() < cachedRotation.expiresAtTimestamp) {
+      return {
+        accessToken: cachedRotation.accessToken,
+        refreshToken: cachedRotation.refreshToken,
+        refreshTokenExpiresAt: cachedRotation.refreshTokenExpiresAt,
+      };
+    }
+
     const session = await prisma.session.findUnique({
       where: { refreshToken },
       include: { user: true },
@@ -215,15 +235,32 @@ export class AuthService {
 
     const accessToken = this.generateAccessToken(userPayload);
 
-    return {
+    const result = {
       accessToken,
       refreshToken: newRefreshToken,
       refreshTokenExpiresAt: newExpiresAt,
     };
+
+    // Store old token with a 30s grace period for concurrent requests
+    recentRotatedTokens.set(refreshToken, {
+      ...result,
+      expiresAtTimestamp: Date.now() + 30_000,
+    });
+
+    // Cleanup expired cache entries
+    const now = Date.now();
+    for (const [tokenKey, cached] of recentRotatedTokens.entries()) {
+      if (now >= cached.expiresAtTimestamp) {
+        recentRotatedTokens.delete(tokenKey);
+      }
+    }
+
+    return result;
   }
 
   static async logout(refreshToken?: string) {
     if (!refreshToken) return;
+    recentRotatedTokens.delete(refreshToken);
     try {
       await prisma.session.delete({
         where: { refreshToken },
